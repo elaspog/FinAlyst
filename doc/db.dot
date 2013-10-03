@@ -1,0 +1,19 @@
+digraph {
+    overlap=false
+    nodesep=2
+    ranksep=2
+    node [shape=record]
+
+    Users [label="{Users|name:string|password:string|money:decimal}"]
+    Items [label="{Items|price:decimal}"]
+    Plans [label="{Plans|start:date|end:date}"]
+    Categories [label="{Categories|name:string|money:decimal}"]
+    Allowance [label="{Allowance|money:decimal}"]
+
+    Items -> Users [taillabel="∞" headlabel="1"]
+    Plans -> Users [taillabel="∞" headlabel="1"]
+    Categories -> Users [taillabel="∞" headlabel="1"]
+    Allowance -> Plans  [taillabel="∞" headlabel="∞" arrowhead="none"]
+    Allowance -> Categories [taillabel="∞" headlabel="∞" arrowhead="none"]
+    Items -> Categories [taillabel="∞" headlabel="1"]
+}

@@ -2,9 +2,11 @@
 #include <fcgio.h>
 #include <mysql/mysql.h>
 #include <string>
+#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <sys/statvfs.h>
 
 using namespace std;
 
@@ -42,6 +44,79 @@ void parse_config(std::string const &filename)
         error_message += filename;
     }
 }
+
+void header(ostream &fcout)
+{
+    fcout << "Content-type: text/html\r\n"
+         << "\r\n"
+         << "<html>\n"
+         << "  <head>\n"
+         << "    <title>Hello, World!</title>\n"
+         << "  </head>\n"
+         << "  <body>\n";
+}
+
+void footer(ostream &fcout)
+{
+    fcout << "  </body>\n"
+         << "</html>\n";
+}
+
+void login_page(FCGX_Request &request, ostream &fcout)
+{
+    header(fcout);
+
+    fcout << "    <h1>Hello, World!</h1>";
+
+    if (service_down)
+        fcout << "Error: " << error_message << "<br>";
+    else
+        fcout << "Connected to mysql<br><br>";
+
+
+    fcout << "<a href=\"?cpuinfo\">cpuinfo</a> ";
+    fcout << "<a href=\"?meminfo\">meminfo</a> ";
+    fcout << "<a href=\"?hddstat\">hddstat</a>";
+
+    fcout << "<br><br>";
+
+    // Print all environment variables
+    fcout << "Environmental variables:<br>";
+    char **env = request.envp;
+    while (*(++env))
+        fcout << *env << "<br>" << endl;
+    footer(fcout);
+}
+
+void cpuinfo(ostream &fcout)
+{
+    header(fcout);
+    ifstream f("/proc/cpuinfo");
+    std::string line;
+    while (std::getline(f, line)) fcout << line << "<br>" << endl;
+    footer(fcout);
+}
+
+void meminfo(ostream &fcout)
+{
+    header(fcout);
+    ifstream f("/proc/meminfo");
+    std::string line;
+    while (std::getline(f, line)) fcout << line << "<br>" << endl;
+    footer(fcout);
+}
+
+void hddstat(ostream &fcout)
+{
+    header(fcout);
+    struct statvfs stat;
+    statvfs("/", &stat);
+    fcout << "Total disk space: " << (stat.f_blocks * stat.f_frsize)/1024/1024 << "Mb<br>" << endl;
+    fcout << "Free disk space: " << (stat.f_bavail * stat.f_bsize)/1024/1024 << "Mb<br>" << endl;
+    fcout << "Total number of files: " << stat.f_files << "<br>" << endl;
+    footer(fcout);
+}
+
 
 int main(void) {
     FCGX_Request request;
@@ -86,23 +161,26 @@ int main(void) {
         ostream fcout(&osbuf);
         ostream fcerr(&esbuf);
 
-        fcout << "Content-type: text/html\r\n"
-             << "\r\n"
-             << "<html>\n"
-             << "  <head>\n"
-             << "    <title>Hello, World!</title>\n"
-             << "  </head>\n"
-             << "  <body>\n"
-             << "    <h1>Hello, World!<h1>";
+        const char *method = FCGX_GetParam("REQUEST_METHOD", request.envp);
+        const char *query = FCGX_GetParam("QUERY_STRING", request.envp);
+        if (strncmp(method, "GET", sizeof("GET")) == 0)
+        {
+            if (strncmp(query, "cpuinfo", sizeof("cpuinfo")) == 0)
+                cpuinfo(fcout);
+            else if (strncmp(query, "meminfo", sizeof("cpuinfo")) == 0)
+                meminfo(fcout);
+            else if (strncmp(query, "hddstat", sizeof("hddstat")) == 0)
+                hddstat(fcout);
+            else login_page(request, fcout);
 
-        if (service_down)
-            fcout << "Error: " << error_message;
-        else
-            fcout << "Connected to mysql";
-
-        fcout << "    <br>"
-             << "  </body>\n"
-             << "</html>\n";
+        } else if (strncmp(method, "POST", sizeof("POST")) == 0)
+        {
+            // TODO
+        } else {
+            // TODO
+        }
+        
+        FCGX_Finish_r(&request);
     }
 
     // Close database connection
