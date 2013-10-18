@@ -12,6 +12,6 @@ digraph {
     Items -> Users [taillabel="∞" headlabel="1"]
     Categories -> Users [taillabel="∞" headlabel="1"]
     Plan -> Users [taillabel="∞" headlabel="1"]
-    Plan -> Categories [taillabel="∞" headlabel="∞" arrowhead="none"]
+    Plan -> Categories [taillabel="∞" headlabel="1"]
     Items -> Categories [taillabel="∞" headlabel="1"]
 }
