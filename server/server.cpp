@@ -3,7 +3,6 @@
 #include <cstring>
 #include <iostream>
 #include <map>
-#include <cassert>
 #include <stdexcept>
 #include <cstdio>
 #include <fcgio.h>

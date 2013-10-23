@@ -14,7 +14,7 @@ string SessionManager::generate_sessionid(User &user)
     memcpy(data+sizeof(time_t)+sessionid_rand_block_size, username.c_str(), username.length());
     gcry_md_hd_t hd;
     gcry_error_t er = gcry_md_open(&hd, GCRY_MD_SHA512, 0);
-    assert(er == 0);
+    log_assert_equal(er, 0u);
     gcry_md_write(hd, (void*)&data, sizeof(data));
     unsigned char *digest = gcry_md_read(hd, GCRY_MD_SHA512);
     std::string sessionid;

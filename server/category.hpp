@@ -126,12 +126,12 @@ public:
                     +mysql_stmt_error(stmt));
         // Fetch data
         auto err = mysql_stmt_fetch(stmt);
-        assert(err == 0 || err == MYSQL_NO_DATA);
+        log_assert(err == 0 || err == MYSQL_NO_DATA);
         if (err == 0)
         {
-            assert(id == qid);
+            log_assert_equal(id, qid);
             // Name is uniq so we should't get more than one result
-            assert(mysql_stmt_fetch(stmt) == MYSQL_NO_DATA);
+            log_assert_equal(mysql_stmt_fetch(stmt), MYSQL_NO_DATA);
 
             // Make sure all the results fetched
             while (mysql_stmt_fetch(stmt) == 0);
@@ -211,7 +211,7 @@ private:
     {
         if (_loaded) return;
         // TODO
-        assert(false);
+        log_assert(false);
     }
 
     Database *_database;

@@ -4,7 +4,6 @@
 #include <map>
 #include <string>
 #include <stdexcept>
-#include <cassert>
 #include <cstring>
 #include <time.h>
 #include <mysql/mysql.h>
@@ -82,7 +81,7 @@ inline time_t mysql_to_time(MYSQL_TIME &dt)
 {
     struct tm bt;
     // TODO: unhandled
-    assert(dt.neg == false);
+    log_assert_equal(dt.neg, false);
     bt.tm_hour = dt.hour;
     bt.tm_min = dt.minute;
     bt.tm_sec = dt.second;

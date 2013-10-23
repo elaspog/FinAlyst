@@ -6,7 +6,6 @@
 #include <iomanip>
 #include <chrono>
 #include <thread>
-#include <cassert>
 #include <gcrypt.h>
 
 #include "logger.hpp"
@@ -175,12 +174,12 @@ public:
                     +mysql_stmt_error(stmt));
         // Fetch data
         auto err = mysql_stmt_fetch(stmt);
-        assert(err == 0 || err == MYSQL_NO_DATA);
+        log_assert(err == 0 || err == MYSQL_NO_DATA);
         if (err == 0)
         {
-            assert(id == qid);
+            log_assert_equal(id, qid);
             // Name is uniq so we should't get more than one user
-            assert(mysql_stmt_fetch(stmt) == MYSQL_NO_DATA);
+            log_assert_equal(mysql_stmt_fetch(stmt), MYSQL_NO_DATA);
 
             // Make sure all the results fetched
             while (mysql_stmt_fetch(stmt) == 0);
@@ -239,12 +238,12 @@ public:
                     +mysql_stmt_error(stmt));
         // Fetch data
         auto err = mysql_stmt_fetch(stmt);
-        assert(err == 0 || err == MYSQL_NO_DATA);
+        log_assert(err == 0 || err == MYSQL_NO_DATA);
         if (err == 0)
         {
-            assert(name == qname);
+            log_assert_equal(name, qname);
             // Name is uniq so we should't get more than one user
-            assert(mysql_stmt_fetch(stmt) == MYSQL_NO_DATA);
+            log_assert_equal(mysql_stmt_fetch(stmt), MYSQL_NO_DATA);
 
             // Make sure all the results fetched
             while (mysql_stmt_fetch(stmt) == 0);
@@ -324,7 +323,8 @@ private:
                 GCRY_KDF_PBKDF2, GCRY_MD_SHA512,
                 (void*)salt, salt_size, 8,
                 sizeof(passdigest), (void*)passdigest);
-        assert(sizeof(passdigest) == 64);
+        static_assert(sizeof(passdigest) == 64,
+                "passdigest should be 64 bytes");
         // Convert to hex
         std::ostringstream ss;
         ss << std::hex << std::setfill('0');
@@ -333,7 +333,7 @@ private:
             ss << std::setw(sizeof(passdigest[0])*2)
                 << (unsigned)passdigest[i];
         }
-        assert(ss.str().length() == sizeof(passtype));
+        log_assert_equal(ss.str().length(), sizeof(passtype));
         memcpy(passdigest_, ss.str().c_str(), ss.str().length());
     }
 
@@ -355,7 +355,7 @@ private:
     {
         if (_loaded) return;
         // TODO
-        assert(false);
+        log_assert(false);
     }
 
     Database *_database;
