@@ -1,20 +1,32 @@
 #include <iostream>
-#include <fcgio.h>
-#include <mysql/mysql.h>
 #include <string>
 #include <cstring>
 #include <iostream>
-#include <fstream>
 #include <map>
-#include <sys/statvfs.h>
+#include <cassert>
+#include <stdexcept>
+#include <cstdio>
+#include <fcgio.h>
+#include <gcrypt.h>
+
+#include "logger.hpp"
+#include "database.hpp"
+#include "session.hpp"
+#include "user.hpp"
+#include "rand.hpp"
+#include "request.hpp"
+#include "template_common.hpp"
+#include "webadmin.hpp"
+#include "webservice.hpp"
+#include "webgui.hpp"
 
 using namespace std;
 
 bool service_down = false;
 std::string error_message;
-std::map<std::string, std::string> config;
+SessionManager sessionman;
 
-void parse_config(std::string const &filename)
+void parse_config(std::string const &filename, OptsMap &config)
 {
     std::ifstream cf(filename);
     if (cf.is_open())
@@ -45,145 +57,130 @@ void parse_config(std::string const &filename)
     }
 }
 
-void header(ostream &fcout)
+void servicedown_page(OptsMap const &config, ostream &fcout)
 {
-    fcout << "Content-type: text/html\r\n"
-         << "\r\n"
-         << "<html>\n"
-         << "  <head>\n"
-         << "    <title>Hello, World!</title>\n"
-         << "  </head>\n"
-         << "  <body>\n";
-}
-
-void footer(ostream &fcout)
-{
-    fcout << "  </body>\n"
-         << "</html>\n";
-}
-
-void login_page(FCGX_Request &request, ostream &fcout)
-{
-    header(fcout);
-
-    fcout << "    <h1>Hello, World!</h1>";
-
-    if (service_down)
-        fcout << "Error: " << error_message << "<br>";
-    else
-        fcout << "Connected to mysql<br><br>";
-
-
-    fcout << "<a href=\"?cpuinfo\">cpuinfo</a> ";
-    fcout << "<a href=\"?meminfo\">meminfo</a> ";
-    fcout << "<a href=\"?hddstat\">hddstat</a>";
-
-    fcout << "<br><br>";
-
-    // Print all environment variables
-    fcout << "Environmental variables:<br>";
-    char **env = request.envp;
-    while (*(++env))
-        fcout << *env << "<br>" << endl;
+    header(fcout, config, "Service down");
+    fcout << "Error: " << error_message << "<br>";
     footer(fcout);
 }
-
-void cpuinfo(ostream &fcout)
-{
-    header(fcout);
-    ifstream f("/proc/cpuinfo");
-    std::string line;
-    while (std::getline(f, line)) fcout << line << "<br>" << endl;
-    footer(fcout);
-}
-
-void meminfo(ostream &fcout)
-{
-    header(fcout);
-    ifstream f("/proc/meminfo");
-    std::string line;
-    while (std::getline(f, line)) fcout << line << "<br>" << endl;
-    footer(fcout);
-}
-
-void hddstat(ostream &fcout)
-{
-    header(fcout);
-    struct statvfs stat;
-    statvfs("/", &stat);
-    fcout << "Total disk space: " << (stat.f_blocks * stat.f_frsize)/1024/1024 << "Mb<br>" << endl;
-    fcout << "Free disk space: " << (stat.f_bavail * stat.f_bsize)/1024/1024 << "Mb<br>" << endl;
-    fcout << "Total number of files: " << stat.f_files << "<br>" << endl;
-    footer(fcout);
-}
-
 
 int main(void) {
-    FCGX_Request request;
+    OptsMap config;
+    FCGX_Request fcgi_request;
 
     FCGX_Init();
-    FCGX_InitRequest(&request, 0, 0);
+    FCGX_InitRequest(&fcgi_request, 0, 0);
+
+    // Setup logging
+    log_target_file("/var/log/finance.log");
 
     // Initialize application
     char const *config_file = getenv("CONFIG_FILE");
-    if (config_file) parse_config(config_file);
+    if (config_file) parse_config(config_file, config);
     else {
         service_down = true;
         error_message = "CONFIG_FILE environment variable undefined";
     }
 
-    // connect to database
-    MYSQL *mysql = mysql_init(NULL);
-    if (mysql == NULL) 
+    Database database(
+            config["database-server"], config["database-user"],
+            config["database-pass"], config["database-name"]);
+    if (!database.connected())
     {
         service_down = true;
-        error_message = "Can't initialize mysql: ";
-        error_message += mysql_error(mysql);
-    }
-
-    if (mysql_real_connect(mysql,
-                config["database-server"].c_str(),
-                config["database-user"].c_str(),
-                config["database-pass"].c_str(),
-                NULL, 0, NULL, 0) == NULL) 
-    {
-        service_down = true;
-        error_message = "Can't connect to database: ";
-        error_message += mysql_error(mysql);
+        error_message = database.error_message();
     }
 
     // Accept requests
-    while (FCGX_Accept_r(&request) == 0) {
-        fcgi_streambuf isbuf(request.in);
-        fcgi_streambuf osbuf(request.out);
-        fcgi_streambuf esbuf(request.err);
+    while (FCGX_Accept_r(&fcgi_request) == 0) {
+        fcgi_streambuf isbuf(fcgi_request.in);
+        fcgi_streambuf osbuf(fcgi_request.out);
+        fcgi_streambuf esbuf(fcgi_request.err);
         istream fcin(&isbuf);
         ostream fcout(&osbuf);
         ostream fcerr(&esbuf);
 
-        const char *method = FCGX_GetParam("REQUEST_METHOD", request.envp);
-        const char *query = FCGX_GetParam("QUERY_STRING", request.envp);
-        if (strncmp(method, "GET", sizeof("GET")) == 0)
+        if (service_down) servicedown_page(config, fcout);
+        else
         {
-            if (strncmp(query, "cpuinfo", sizeof("cpuinfo")) == 0)
-                cpuinfo(fcout);
-            else if (strncmp(query, "meminfo", sizeof("cpuinfo")) == 0)
-                meminfo(fcout);
-            else if (strncmp(query, "hddstat", sizeof("hddstat")) == 0)
-                hddstat(fcout);
-            else login_page(request, fcout);
+            try
+            {
+                Request request(fcgi_request);
+                Session *session = NULL;
+                // Parse request
+                std::string query = request.query();
+                // Search for session cookie
+                string sessionid = request.cookie("sessionid");
+                if (sessionid.empty())
+                {
+                    sessionid = request.get("sessionid");
+                    if (sessionid.empty() && request.type() == RequestType::Post)
+                    {
+                        sessionid = request.post("sessionid");
+                    }
+                }
+                session = sessionman.session(sessionid);
+                if (session != NULL) session->update_user();
 
-        } else if (strncmp(method, "POST", sizeof("POST")) == 0)
-        {
-            // TODO
-        } else {
-            // TODO
+                if (query.substr(0, sizeof("webservice/")-1) == "webservice/")
+                {
+                    if (query == "webservice/login")
+                    {
+                        webservice_login(database, sessionman,
+                                request, fcout);
+                    } else if (query == "webservice/logout")
+                    {
+                        webservice_logout(sessionman, session, fcout);
+                    } else
+                    {
+                        if (session != NULL)
+                        {
+                            WebService::handle_request(
+                                    database, *session, request, fcout);
+                        } else
+                        {
+                            html_content(fcout);
+                            fcout << "{\n";
+                            fcout << "\t\"sucess\": false,\n";
+                            fcout << "\t\"status\": 401\n";
+                            fcout << "}";
+                        }
+                    }
+                } else
+                {
+                    if (query == "logout")
+                            logout_page(sessionman, session, fcout);
+                    else if (query.empty() || query == "login" || session == NULL)
+                    {
+                        login_page(config, database, sessionman, session,
+                                request, fcout);
+                    } else 
+                    {
+                        if (session->user().administrator())
+                            WebAdmin::handle_request(config,
+                                    database, *session,
+                                    request, fcout, fcin);
+                        else
+                        {
+                            WebGUI::handle_request(config,
+                                    database, *session,
+                                    request, fcout);
+                        }
+                    }
+                }
+            }
+            catch (std::logic_error const &error)
+            {
+                header(fcout, config, "Error");
+                fcout << "Got exception: " << error.what() << std::endl;
+            } catch (...)
+            {
+                header(fcout, config, "Error");
+                fcout << "Got unknown exception" << std::endl;
+            }
         }
         
-        FCGX_Finish_r(&request);
+        FCGX_Finish_r(&fcgi_request);
     }
-
-    // Close database connection
-    mysql_close(mysql);
     return 0;
 }
