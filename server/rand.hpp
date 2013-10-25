@@ -3,7 +3,7 @@
 
 #include <random>
 
-typedef unsigned int randgen_ret_type;
+typedef uint32_t randgen_ret_type;
 
 randgen_ret_type secure_rand();
 

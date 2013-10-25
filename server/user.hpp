@@ -359,7 +359,7 @@ private:
         {
             std::string c((char*)passsalt_+i*sizeof(randgen_ret_type)*2,
                     sizeof(randgen_ret_type)*2);
-            binsalt[i] = strtol(c.c_str(), NULL, 16);
+            binsalt[i] = strtoul(c.c_str(), NULL, 16);
             //LOG_DEBUG("%s %08X %u", c.c_str(), binsalt[i], binsalt[i]);
         }
         /*for (unsigned i = 0; i < sizeof(binsalt); ++i)
