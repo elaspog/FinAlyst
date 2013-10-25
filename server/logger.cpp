@@ -10,7 +10,7 @@ void log_target_file(std::string const &filename)
     logfile = fopen(filename.c_str(), "w");
     fprintf(logfile, "Logging started...\n");
     fflush(logfile);
-    if (logfile != NULL) abort();
+    if (logfile == NULL) abort();
 }
 
 void log_message(LogLevel level, const char * format, ...)

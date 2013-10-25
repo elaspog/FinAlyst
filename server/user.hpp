@@ -112,6 +112,9 @@ public:
         std::string s1((char*)_passdigest, sizeof(passtype));
         std::string s2((char*)passdigest, sizeof(passtype));
 
+        /*LOG_DEBUG("Expected: %s", s1.c_str());
+        LOG_DEBUG("Hash got: %s", s2.c_str());*/
+
         // Compare passwords (protected against timeing attack)
         unsigned char same = 0;
         for (unsigned i = 0; i < sizeof(_passdigest); ++i)
@@ -174,7 +177,12 @@ public:
                     +mysql_stmt_error(stmt));
         // Fetch data
         auto err = mysql_stmt_fetch(stmt);
-        log_assert(err == 0 || err == MYSQL_NO_DATA);
+        if (err != 0 && err != MYSQL_NO_DATA)
+        {
+            throw std::logic_error(
+                    std::string("Can't fetch statement: ")
+                    +mysql_stmt_error(stmt));
+        }
         if (err == 0)
         {
             log_assert_equal(id, qid);
@@ -238,7 +246,12 @@ public:
                     +mysql_stmt_error(stmt));
         // Fetch data
         auto err = mysql_stmt_fetch(stmt);
-        log_assert(err == 0 || err == MYSQL_NO_DATA);
+        if (err != 0 && err != MYSQL_NO_DATA)
+        {
+            throw std::logic_error(
+                    std::string("Can't fetch statement: ")
+                    +mysql_stmt_error(stmt));
+        }
         if (err == 0)
         {
             log_assert_equal(name, qname);
@@ -347,7 +360,10 @@ private:
             std::string c((char*)passsalt_+i*sizeof(randgen_ret_type)*2,
                     sizeof(randgen_ret_type)*2);
             binsalt[i] = strtol(c.c_str(), NULL, 16);
+            //LOG_DEBUG("%s %08X %u", c.c_str(), binsalt[i], binsalt[i]);
         }
+        /*for (unsigned i = 0; i < sizeof(binsalt); ++i)
+            LOG_DEBUG("%02X", ((unsigned char*)binsalt)[i]);*/
         digest_pass(password_, (void*)binsalt, sizeof(binsalt), passdigest_);
     }
 
