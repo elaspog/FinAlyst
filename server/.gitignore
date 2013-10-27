@@ -1,4 +1,6 @@
 *.o
 *.mdb
 *.exe
+*.swp
 server
+assets/webserviceapi.html

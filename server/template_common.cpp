@@ -13,11 +13,21 @@ void header(std::ostream &fcout,
     std::string assetpath;
     if (it != config.end()) assetpath = it->second;
     html_content(fcout);
+    fcout << "<!doctype html>";
     fcout << "<html>";
-    fcout <<    "<head>\n";
+    fcout <<    "<head>";
+    fcout <<        "<meta charset=\"UTF-8\">";
     fcout <<        "<title>" << title << " - Tiny Home Finance Application</title>\n";
     fcout <<        "<link rel=\"stylesheet\" type=\"text/css\" href=\""
         << assetpath << "/main.css\">";
+    fcout <<        "<script src=\"" << assetpath << "/jquery.js\"></script>";
+    fcout <<        "<script src=\"" << assetpath << "/jquery.browser.js\"></script>";
+    fcout <<        "<script src=\"" << assetpath << "/jquery.iframe-auto-height.js\"></script>";
+    fcout <<        "<script>";
+    fcout <<            "$(document).ready(function () {";
+    fcout <<                "$('iframe').iframeAutoHeight({debug: true});";
+    fcout <<            "});";
+    fcout <<        "</script>";
     fcout <<    "</head>\n";
     fcout <<    "<body>\n";
 }

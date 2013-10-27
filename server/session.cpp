@@ -84,17 +84,20 @@ void webservice_login(Database &database,
         {
             fcout << "\t\"sucess\": true,\n";
             fcout << "\t\"status\": 200,\n";
+            fcout << "\t\"data\": null,\n";
             fcout << "\t\"sessionid\": \"" << sessionman.new_session(user)
                 << "\"" << endl;
         } else
         {
             fcout << "\t\"sucess\": false,\n";
-            fcout << "\t\"status\": 401\n";
+            fcout << "\t\"status\": 401,\n";
+            fcout << "\t\"data\": null\n";
         }
     } else
     {
         fcout << "\t\"sucess\": false,\n";
-        fcout << "\t\"status\": 405\n";
+        fcout << "\t\"status\": 405,\n";
+        fcout << "\t\"data\": null\n";
     }
     fcout << "}";
 }
@@ -108,11 +111,13 @@ void webservice_logout(SessionManager &sessionman, Session *session,
     {
         sessionman.delete_session(session->sessionid());
         fcout << "\t\"sucess\": true,\n";
-        fcout << "\t\"status\": 200\n";
+        fcout << "\t\"status\": 200,\n";
+        fcout << "\t\"data\": null\n";
     } else
     {
         fcout << "\t\"sucess\": false,\n";
-        fcout << "\t\"status\": 400\n";
+        fcout << "\t\"status\": 400,\n";
+        fcout << "\t\"data\": null\n";
     }
     fcout << "}";
 }

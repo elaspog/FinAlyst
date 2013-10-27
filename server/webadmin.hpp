@@ -15,21 +15,19 @@ namespace WebAdmin
 
     void menu(std::ostream &fcout)
     {
-        fcout << "<a href=\"?q=cpuinfo\">cpuinfo</a> ";
-        fcout << "<a href=\"?q=meminfo\">meminfo</a> ";
-        fcout << "<a href=\"?q=hddstat\">hddstat</a> ";
-        fcout << "<a href=\"?q=newuser\">newuser</a> ";
-        fcout << "<a href=\"?q=logout\">logout</a> ";
+        fcout << "<div id=\"menu\">";
+        fcout <<     "<a href=\"?q=main\">Main</a>";
+        fcout <<     "<a href=\"?q=cpuinfo\">Cpu info</a>";
+        fcout <<     "<a href=\"?q=meminfo\">Mem info</a>";
+        fcout <<     "<a href=\"?q=hddstat\">HDD stat</a>";
+        fcout <<     "<a href=\"?q=newuser\">New user</a>";
+        fcout <<     "<a href=\"?q=webserviceapi\">Webservice API</a>";
+        fcout <<     "<a href=\"?q=logout\">Logout</a> ";
+        fcout << "</div>";
     }
 
-    void main_page(OptsMap const &config, Database &database, Request &request, std::ostream &fcout)
+    void main_page(Database &database, Request &request, std::ostream &fcout)
     {
-        header(fcout, config, "Administration");
-        menu(fcout);
-
-        fcout << "<br><br>";
-        fcout << "<h1>Administration</h1>";
-
         std::vector<User> users;
         User::find_all(database, users);
 
@@ -46,12 +44,9 @@ namespace WebAdmin
         fcout << "</table>";
 
         print_environment(fcout, request);
-
-        footer(fcout);
     }
 
-    void newuser_page(OptsMap const &config,
-            Database &database, Request &request,
+    void newuser_page(Database &database, Request &request,
             std::ostream &fcout, std::istream &fcin)
     {
         if (request.type() == RequestType::Post)
@@ -79,53 +74,49 @@ namespace WebAdmin
             }
         } else
         {
-            header(fcout, config, "New user");
-            menu(fcout);
-
             fcout << "<form name=\"newuser_form\" method=\"post\">";
             fcout << "Username: <input name=\"name\">";
             fcout << "Password: <input name=\"pass\">";
             fcout << "Password again: <input name=\"pass_again\">";
             fcout << "<input type=\"submit\" value=\"Create\">";
             fcout << "</form>";
-
-            footer(fcout);
         }
     }
 
-    void cpuinfo(OptsMap const &config, std::ostream &fcout)
+    void cpuinfo(std::ostream &fcout)
     {
-        header(fcout, config, "CPU info");
-        menu(fcout);
-
         std::ifstream f("/proc/cpuinfo");
         std::string line;
         while (std::getline(f, line)) fcout << line << "<br>" << std::endl;
-        footer(fcout);
     }
 
-    void meminfo(OptsMap const &config, std::ostream &fcout)
+    void meminfo(std::ostream &fcout)
     {
-        header(fcout, config, "MEM info");
-        menu(fcout);
-
         std::ifstream f("/proc/meminfo");
         std::string line;
         while (std::getline(f, line)) fcout << line << "<br>" << std::endl;
-        footer(fcout);
     }
 
-    void hddstat(OptsMap const &config, std::ostream &fcout)
+    void hddstat(std::ostream &fcout)
     {
-        header(fcout, config, "HDD stat");
-        menu(fcout);
-
         struct statvfs stat;
         statvfs("/", &stat);
+        
         fcout << "Total disk space: " << (stat.f_blocks * stat.f_frsize)/1024/1024 << "Mb<br>" << std::endl;
         fcout << "Free disk space: " << (stat.f_bavail * stat.f_bsize)/1024/1024 << "Mb<br>" << std::endl;
         fcout << "Total number of files: " << stat.f_files << "<br>" << std::endl;
-        footer(fcout);
+    }
+
+    void webserviceapi(OptsMap const &config, std::ostream &fcout)
+    {
+        auto it = config.find("asset-dir");
+        std::string assetpath;
+        if (it != config.end()) assetpath = it->second;
+
+        fcout << "<div class=\"markdown_content\">";
+        fcout << "<iframe seamless src=\"";
+        fcout << assetpath << "/webserviceapi.html\"></iframe>";
+        fcout << "</div>";
     }
 
     void handle_request(OptsMap const &config, Database &database,
@@ -138,24 +129,34 @@ namespace WebAdmin
         switch (request.type())
         {
         case RequestType::Get:
+            header(fcout, config, "Webservice API");
+            menu(fcout);
+            fcout << "<div class=\"content\">";
+
             if (query == "main")
-                main_page(config, database, request, fcout);
+                main_page(database, request, fcout);
             else if (query == "newuser")
-                newuser_page(config, database, request, fcout, fcin);
+                newuser_page(database, request, fcout, fcin);
             else if (query == "cpuinfo")
-                cpuinfo(config, fcout);
+                cpuinfo(fcout);
             else if (query == "meminfo")
-                meminfo(config, fcout);
+                meminfo(fcout);
             else if (query == "hddstat")
-                hddstat(config, fcout);
+                hddstat(fcout);
+            else if (query == "webserviceapi")
+                webserviceapi(config, fcout);
             else
             {
-                // TODO: 404
+                // TODO: handle 404 better
+                fcout << "Error: 404";
             }
+
+            fcout << "</div>";
+            footer(fcout);
             break;
         case RequestType::Post:
             if (query == "newuser")
-                newuser_page(config, database, request, fcout, fcin);
+                newuser_page(database, request, fcout, fcin);
             else
             {
                 // TODO: 404

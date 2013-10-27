@@ -22,26 +22,23 @@ namespace WebGUI
         fcout << "<a href=\"?q=item\">Items</a>";
         fcout << "<a href=\"?q=plan\">Plan</a>";
         fcout << "<a href=\"?q=diagram\">Diagrams</a>";
-        fcout << "<a href=\"?q=logout\">logout</a> ";
+        fcout << "<a href=\"?q=logout\">Logout</a> ";
         fcout << "</div>";
     }
 
-    void main_page(OptsMap const &config, std::ostream &fcout)
+    void main_page(std::ostream &fcout)
     {
-        header(fcout, config, "Main page");
-        menu(fcout);
         fcout << "<h2>TODO</h2>";
+
+        fcout << "</div>";
         footer(fcout);
     }
 
-    void item_page(OptsMap const &config,
-            Database &database, Session &session,
+    void item_page(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
         // TODO: handle limit
         (void)request;
-        header(fcout, config, "Item");
-        menu(fcout);
         fcout << "<a href=\"?q=item_add\">Add item</a>";
         fcout << "<h2>Item</h2>";
         std::vector<Item> items;
@@ -55,17 +52,13 @@ namespace WebGUI
             fcout << "</tr>";
         }
         fcout << "</table>";
-        footer(fcout);
     }
 
-    void category_page(OptsMap const &config,
-            Database &database, Session &session,
+    void category_page(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
         // TODO: handle limit
         (void)request;
-        header(fcout, config, "Categories");
-        menu(fcout);
         fcout << "<a href=\"?q=category_add\">Add category</a>";
         fcout << "<h2>Categories:</h2>";
         std::vector<Category> categories;
@@ -79,11 +72,9 @@ namespace WebGUI
             fcout << "</tr>";
         }
         fcout << "</table>";
-        footer(fcout);
     }
 
-    void item_add(OptsMap const &config,
-            Database &database, Session &session,
+    void item_add(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
         if (request.type() == RequestType::Post)
@@ -94,8 +85,6 @@ namespace WebGUI
             return;
         }
 
-        header(fcout, config, "Item add");
-        menu(fcout);
         fcout << "<br />";
         fcout << "<form name=\"item_add_form\"  method=\"post\" action=\"?q=item_add\">";
         fcout << "<select name=\"categoryid\">";
@@ -111,17 +100,13 @@ namespace WebGUI
         fcout << "Description: <textarea rows=\"3\" name=\"description\"></textarea>";
         fcout << "<input type=\"submit\" value=\"Add item\">";
         fcout << "</form>";
-        footer(fcout);
     }
 
-    void plan_page(OptsMap const &config,
-            Database &database, Session &session,
+    void plan_page(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
         // TODO: handle limit
         (void)request;
-        header(fcout, config, "Plan");
-        menu(fcout);
         fcout << "<a href=\"?q=planitem_add\">Add plan item</a>";
         fcout << "<h2>Plan</h2>";
         std::vector<Plan> plan;
@@ -135,11 +120,9 @@ namespace WebGUI
             fcout << "</tr>";
         }
         fcout << "</table>";
-        footer(fcout);
     }
 
-    void planitem_add(OptsMap const &config,
-            Database &database, Session &session,
+    void planitem_add(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
         if (request.type() == RequestType::Post)
@@ -150,9 +133,6 @@ namespace WebGUI
             return;
         }
 
-        header(fcout, config, "Item add");
-        menu(fcout);
-        fcout << "<br />";
         fcout << "<form name=\"planitem_add_form\"  method=\"post\" action=\"?q=planitem_add\">";
         fcout << "<select name=\"categoryid\">";
         std::vector<Category> categories;
@@ -167,11 +147,9 @@ namespace WebGUI
         fcout << "Description: <textarea rows=\"3\" name=\"description\"></textarea>";
         fcout << "<input type=\"submit\" value=\"Add plan item\">";
         fcout << "</form>";
-        footer(fcout);
     }
 
-    void category_add(OptsMap const &config,
-            Database &database, Session &session,
+    void category_add(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
         if (request.type() == RequestType::Post)
@@ -182,39 +160,49 @@ namespace WebGUI
             return;
         }
 
-        header(fcout, config, "Category add");
-        menu(fcout);
         fcout << "<br />";
         fcout << "<form name=\"category_add_form\"  method=\"post\" action=\"?q=category_add\">";
         fcout << "Name: <input name=\"name\">";
         fcout << "Description: <textarea rows=\"3\" name=\"description\"></textarea>";
         fcout << "<input type=\"submit\" value=\"Kategória hozzáadása\">";
         fcout << "</form>";
-        footer(fcout);
     }
 
     void handle_request(OptsMap const &config,
             Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
+        if (request.type() == RequestType::Get)
+        {
+            header(fcout, config, "Main page");
+            menu(fcout);
+            fcout << "<div class=\"content\">";
+        }
+
         if (request.query().empty() || request.query() == "main")
-            main_page(config, fcout);
+            main_page(fcout);
         else if (request.query() == "item")
-            item_page(config, database, session, request, fcout);
+            item_page(database, session, request, fcout);
         else if (request.query() == "item_add")
-            item_add(config, database, session, request, fcout);
+            item_add(database, session, request, fcout);
         else if (request.query() == "plan")
-            plan_page(config, database, session, request, fcout);
+            plan_page(database, session, request, fcout);
         else if (request.query() == "planitem_add")
-            planitem_add(config, database, session, request, fcout);
+            planitem_add(database, session, request, fcout);
         else if (request.query() == "category")
-            category_page(config, database, session, request, fcout);
+            category_page(database, session, request, fcout);
         else if (request.query() == "category_add")
-            category_add(config, database, session, request, fcout);
+            category_add(database, session, request, fcout);
         else
         {
             // TODO: handle 404 gracefully
-            throw std::logic_error("Error 404");
+            fcout << "Error: 404";
+        }
+
+        if (request.type() == RequestType::Get)
+        {
+            fcout << "</div>";
+            footer(fcout);
         }
     }
 

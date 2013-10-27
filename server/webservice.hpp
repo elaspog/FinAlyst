@@ -20,19 +20,24 @@ namespace WebService
         try {
             BusinessLogic::item_add(database, session, request);
             fcout << "\t\"sucess\": true,\n";
-            fcout << "\t\"status\": 200\n";
+            fcout << "\t\"status\": 200,\n";
+            // TODO: return created planitem
+            fcout << "\t\"data\": null\n";
         } catch (BusinessLogic::MethodNotAllowed const &error)
         {
             fcout << "\t\"sucess\": false,\n";
-            fcout << "\t\"status\": 405\n";
+            fcout << "\t\"status\": 405,\n";
+            fcout << "\t\"data\": null\n";
         } catch (BusinessLogic::MalformedRequest const &error)
         {
             fcout << "\t\"sucess\": false,\n";
-            fcout << "\t\"status\": 400\n";
+            fcout << "\t\"status\": 400,\n";
+            fcout << "\t\"data\": null\n";
         } catch (...)
         {
             fcout << "\t\"sucess\": false,\n";
-            fcout << "\t\"status\": 500\n";
+            fcout << "\t\"status\": 500,\n";
+            fcout << "\t\"data\": null\n";
         }
         fcout << "}";
     }
@@ -55,8 +60,8 @@ namespace WebService
             count++;
             fcout << "\t\t{\n";
             fcout << "\t\t\t\"id\": \"" << item.id() << "\",\n";
-            fcout << "\t\t\t\"create\": \"" << item.create()*1000 << "\",\n";
-            fcout << "\t\t\t\"modify\": \"" << item.modify()*1000 << "\",\n";
+            fcout << "\t\t\t\"create\": \"/Date(" << item.create()*1000 << ")/\",\n";
+            fcout << "\t\t\t\"modify\": \"/Date(" << item.modify()*1000 << ")/\",\n";
             fcout << "\t\t\t\"categoryid\": \"" << item.category().id() << "\",\n";
             fcout << "\t\t\t\"amount\": \"" << item.amount() << "\",\n";
             fcout << "\t\t\t\"description\": \"" << item.description() << "\",\n";
@@ -76,19 +81,24 @@ namespace WebService
         try {
             BusinessLogic::planitem_add(database, session, request);
             fcout << "\t\"sucess\": true,\n";
-            fcout << "\t\"status\": 200\n";
+            fcout << "\t\"status\": 200,\n";
+            // TODO: return created planitem
+            fcout << "\t\"data\": null\n";
         } catch (BusinessLogic::MethodNotAllowed const &error)
         {
             fcout << "\t\"sucess\": false,\n";
-            fcout << "\t\"status\": 405\n";
+            fcout << "\t\"status\": 405,\n";
+            fcout << "\t\"data\": null\n";
         } catch (BusinessLogic::MalformedRequest const &error)
         {
             fcout << "\t\"sucess\": false,\n";
-            fcout << "\t\"status\": 400\n";
+            fcout << "\t\"status\": 400,\n";
+            fcout << "\t\"data\": null\n";
         } catch (...)
         {
             fcout << "\t\"sucess\": false,\n";
-            fcout << "\t\"status\": 500\n";
+            fcout << "\t\"status\": 500,\n";
+            fcout << "\t\"data\": null\n";
         }
         fcout << "}";
     }
@@ -111,8 +121,8 @@ namespace WebService
             count++;
             fcout << "\t\t{\n";
             fcout << "\t\t\t\"id\": \"" << item.id() << "\",\n";
-            fcout << "\t\t\t\"create\": \"" << item.create()*1000 << "\",\n";
-            fcout << "\t\t\t\"modify\": \"" << item.modify()*1000 << "\",\n";
+            fcout << "\t\t\t\"create\": \"/Date(" << item.create()*1000 << ")/\",\n";
+            fcout << "\t\t\t\"modify\": \"/Date(" << item.modify()*1000 << ")/\",\n";
             fcout << "\t\t\t\"categoryid\": \"" << item.category().id() << "\",\n";
             fcout << "\t\t\t\"amount\": \"" << item.amount() << "\",\n";
             fcout << "\t\t\t\"description\": \"" << item.description() << "\"\n";
@@ -162,19 +172,24 @@ namespace WebService
         try {
             BusinessLogic::category_add(database, session, request);
             fcout << "\t\"sucess\": true,\n";
-            fcout << "\t\"status\": 200\n";
+            fcout << "\t\"status\": 200,\n";
+            // TODO: return created planitem
+            fcout << "\t\"data\": null\n";
         } catch (BusinessLogic::MethodNotAllowed const &error)
         {
             fcout << "\t\"sucess\": false,\n";
-            fcout << "\t\"status\": 405\n";
+            fcout << "\t\"status\": 405,\n";
+            fcout << "\t\"data\": null\n";
         } catch (BusinessLogic::MalformedRequest const &error)
         {
             fcout << "\t\"sucess\": false,\n";
-            fcout << "\t\"status\": 400\n";
+            fcout << "\t\"status\": 400,\n";
+            fcout << "\t\"data\": null\n";
         } catch (...)
         {
             fcout << "\t\"sucess\": false,\n";
-            fcout << "\t\"status\": 500\n";
+            fcout << "\t\"status\": 500,\n";
+            fcout << "\t\"data\": null\n";
         }
         fcout << "}";
     }

@@ -8,6 +8,20 @@
 #include <time.h>
 #include <mysql/mysql.h>
 
+#include "logger.hpp"
+
+/*class Statement
+{
+    MYSQL_STMT *stmt;
+
+    ~Statement()
+    {
+        // Ignore errors, we need to close it anyway, and it is
+        // also bad practice to throw exception in dtor.
+        mysql_stmt_close(stmt);
+    }
+};*/
+
 class Database
 {
 public:
@@ -69,6 +83,10 @@ public:
         }
         return it->second;
     }
+
+    /*void query(std::string const &query, MYSQL_BIND *result)
+    {
+    }*/
 
 private:
     std::map<std::string, MYSQL_STMT*> statements;
