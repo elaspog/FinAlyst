@@ -22,6 +22,7 @@ namespace WebAdmin
         fcout <<     "<a href=\"?q=hddstat\">HDD stat</a>";
         fcout <<     "<a href=\"?q=newuser\">New user</a>";
         fcout <<     "<a href=\"?q=webserviceapi\">Webservice API</a>";
+        fcout <<     "<a href=\"?q=changelog\">Changelog</a>";
         fcout <<     "<a href=\"?q=logout\">Logout</a> ";
         fcout << "</div>";
     }
@@ -107,18 +108,6 @@ namespace WebAdmin
         fcout << "Total number of files: " << stat.f_files << "<br>" << std::endl;
     }
 
-    void webserviceapi(OptsMap const &config, std::ostream &fcout)
-    {
-        auto it = config.find("asset-dir");
-        std::string assetpath;
-        if (it != config.end()) assetpath = it->second;
-
-        fcout << "<div class=\"markdown_content\">";
-        fcout << "<iframe seamless src=\"";
-        fcout << assetpath << "/webserviceapi.html\"></iframe>";
-        fcout << "</div>";
-    }
-
     void handle_request(OptsMap const &config, Database &database,
             Session &session, Request &request,
             std::ostream &fcout, std::istream &fcin)
@@ -144,7 +133,9 @@ namespace WebAdmin
             else if (query == "hddstat")
                 hddstat(fcout);
             else if (query == "webserviceapi")
-                webserviceapi(config, fcout);
+                static_page("webserviceapi.html", config, fcout);
+            else if (query == "changelog")
+                static_page("changelog.html", config, fcout);
             else
             {
                 // TODO: handle 404 better

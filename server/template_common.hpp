@@ -9,5 +9,7 @@ void header(std::ostream &fcout,
         OptsMap const &assetpath, std::string const &title);
 void footer(std::ostream &fcout);
 void print_environment(std::ostream &fcout, Request const &request);
+void static_page(std::string const &filename,
+        OptsMap const &config, std::ostream &fcout);
 
 #endif

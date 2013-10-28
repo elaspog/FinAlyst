@@ -47,3 +47,16 @@ void print_environment(std::ostream &fcout, Request const &request)
     request.each_env([&fcout] (std::string const &key, std::string const &value)
         { fcout << key << "=" << value << "<br>"; });
 }
+
+void static_page(std::string const &filename,
+        OptsMap const &config, std::ostream &fcout)
+{
+    auto it = config.find("asset-dir");
+    std::string assetpath;
+    if (it != config.end()) assetpath = it->second;
+
+    fcout << "<div class=\"markdown_content\">";
+    fcout << "<iframe seamless src=\"";
+    fcout << assetpath << "/" << filename << "\"></iframe>";
+    fcout << "</div>";
+}
