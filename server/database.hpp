@@ -88,7 +88,13 @@ public:
     {
     }*/
 
+    uint64_t last_insert_id()
+    {
+        return mysql_insert_id(_mysql);
+    }
+
 private:
+
     std::map<std::string, MYSQL_STMT*> statements;
     bool _connected;
     MYSQL *_mysql;

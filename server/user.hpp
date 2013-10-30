@@ -95,6 +95,7 @@ public:
                 throw std::logic_error(
                         std::string("Can't execute statement: ")
                         +mysql_stmt_error(stmt));
+            _id = _database->last_insert_id();
         } else
         {
             // TODO: do update
