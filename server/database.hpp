@@ -247,7 +247,7 @@ public:
         MYSQL_STMT *stmt = statement(query);
         // Setup query arguments
         //Params param_values;
-        size_t param_size[std::tuple_size<Params>::value];
+        unsigned long param_size[std::tuple_size<Params>::value];
         MYSQL_BIND params[std::tuple_size<Params>::value];
         SetupBind<Params, std::tuple_size<Params>::value>::setup(
                 param_values,
@@ -260,7 +260,7 @@ public:
                     +mysql_stmt_error(stmt));
         // Setup result set
         Results res_values;
-        size_t  res_size[std::tuple_size<Results>::value];
+        unsigned long res_size[std::tuple_size<Results>::value];
         MYSQL_BIND results[std::tuple_size<Results>::value];
         SetupBind<Results, std::tuple_size<Results>::value>::setup(
                 res_values,
