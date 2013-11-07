@@ -152,7 +152,7 @@ class Database
     template <class BindTuple, size_t N>
     struct SetupBind
     {
-        static void setup(BindTuple const &tuple, size_t *size, MYSQL_BIND *bind)
+        static void setup(BindTuple const &tuple, unsigned long *size, MYSQL_BIND *bind)
         {
             SetupBind<BindTuple, N-1>::setup(tuple, size-1, bind-1);
             //LOG_DEBUG("bind param to %X", (uint64_t)bind);
@@ -163,7 +163,7 @@ class Database
     template <class BindTuple>
     struct SetupBind<BindTuple, 1>
     {
-        static void setup(BindTuple const &tuple, size_t *size, MYSQL_BIND *bind)
+        static void setup(BindTuple const &tuple, unsigned long *size, MYSQL_BIND *bind)
         {
             //LOG_DEBUG("bind last param to %X", (uint64_t)bind);
             *bind = mbind(std::get<0>(tuple), *size);
@@ -173,7 +173,7 @@ class Database
     template <class BindTuple>
     struct SetupBind<BindTuple, 0>
     {
-        static void setup(BindTuple const &tuple, size_t *size, MYSQL_BIND *bind)
+        static void setup(BindTuple const &tuple, unsigned long *size, MYSQL_BIND *bind)
         {
             (void)tuple; (void)size; (void)bind;
         }
