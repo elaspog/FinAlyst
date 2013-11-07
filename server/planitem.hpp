@@ -8,16 +8,16 @@
 #include "user.hpp"
 #include "category.hpp"
 
-class Plan
+class PlanItem
 {
 public:
 
-    Plan() :
+    PlanItem() :
         _database(NULL), _invalid(true),
         _id(std::numeric_limits<uint64_t>::max())
     {}
 
-    Plan(Database &database, User const &user, Category const &category,
+    PlanItem(Database &database, User const &user, Category const &category,
             uint64_t amount, std::string description) :
         _database(&database), _invalid(false), _detached(true),
         _userid(user.id()), _categoryid(category.id()),
@@ -30,6 +30,7 @@ public:
     Category category() { return Category(*_database, _categoryid); }
     User user() { return User(*_database, _userid); }
 
+    bool valid() { return !_invalid; }
     uint64_t id() const { return _id; }
     time_t create() { return _create; }
     time_t modify() { return _modify; }
@@ -76,7 +77,26 @@ public:
         }
     }
 
+    static PlanItem find(Database &database, uint64_t id)
+    {
+        typedef std::tuple<uint64_t> Params;
+        Params params = std::make_tuple(id);
+        return query_uniqe(database, params,
+                "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
+                    " FROM `items` WHERE id = ?");
+    }
+
     static void find_all(Database &database,
+            User const &user, std::vector<PlanItem> &items)
+    {
+        typedef std::tuple<uint64_t> Params;
+        Params params = std::make_tuple(user.id());
+        query(database, params, items,
+                "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
+                    " FROM `items` WHERE userid = ?");
+    }
+
+    /*static void find_all(Database &database,
             User const &user, std::vector<Plan> &plans)
     {
         MYSQL_STMT* stmt = database.statement(
@@ -127,17 +147,60 @@ public:
                         user.id(),
                         amount, std::string(qdesc)));
         }
-    }
+    }*/
 
 private:
 
-    Plan(Database &database, uint64_t id, uint64_t userid,
+    PlanItem(Database &database, uint64_t id,
             time_t create, time_t modify, 
+            uint64_t userid, uint64_t categoryid,
             uint64_t amount, std::string description) :
         _database(&database), _detached(false), _id(id),
         _create(create), _modify(modify),
-        _userid(userid), _amount(amount), _description(description)
+        _userid(userid), _categoryid(categoryid),
+        _amount(amount), _description(description)
     {}
+
+    template <typename Params>
+    static PlanItem query_uniqe(Database &database, Params const &params,
+            std::string const &query)
+    {
+        typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
+                uint64_t, uint64_t, uint64_t, FixedString<256>> Results;
+        PlanItem item;
+        database.query<Params, Results>(params, query,
+                [&database, &item] (Results &res) {
+                    log_assert(!item.valid());
+                    item = PlanItem(database,
+                        std::get<0>(res),
+                        mysql_to_time(std::get<1>(res)),
+                        mysql_to_time(std::get<2>(res)),
+                        std::get<3>(res),
+                        std::get<4>(res),
+                        std::get<5>(res),
+                        std::get<6>(res).to_string());
+                });
+        return item;
+    }
+
+    template <typename Params>
+    static void query(Database &database, Params const &params,
+            std::vector<PlanItem> &items, std::string const &query)
+    {
+        typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
+                uint64_t, uint64_t, uint64_t, FixedString<256>> Results;
+        database.query<Params, Results>(params, query,
+                [&database, &items] (Results &res) {
+                    items.push_back( PlanItem(database,
+                        std::get<0>(res),
+                        mysql_to_time(std::get<1>(res)),
+                        mysql_to_time(std::get<2>(res)),
+                        std::get<3>(res),
+                        std::get<4>(res),
+                        std::get<5>(res),
+                        std::get<6>(res).to_string()));
+                });
+    }
 
     Database *_database;
     bool _invalid;

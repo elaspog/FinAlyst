@@ -7,7 +7,7 @@
 #include "session.hpp"
 #include "request.hpp"
 #include "item.hpp"
-#include "plan.hpp"
+#include "planitem.hpp"
 #include "category.hpp"
 #include "utils.hpp"
 
@@ -76,7 +76,7 @@ namespace BusinessLogic
                 throw MalformedRequest(
                         "Categoy belongs to a different user!");
             }
-            Plan n(database, session.user(), category,
+            PlanItem n(database, session.user(), category,
                     amount, request.post("description"));
             n.save();
         } else {

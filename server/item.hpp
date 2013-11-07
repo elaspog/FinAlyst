@@ -30,6 +30,7 @@ public:
     Category category() { return Category(*_database, _categoryid); }
     User user() { return User(*_database, _userid); }
 
+    bool valid() { return !_invalid; }
     uint64_t id() const { return _id; }
     time_t create() { return _create; }
     time_t modify() { return _modify; }
@@ -78,122 +79,21 @@ public:
 
     static Item find(Database &database, uint64_t id)
     {
-        MYSQL_STMT* stmt = database.statement(
-                    "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
+        typedef std::tuple<uint64_t> Params;
+        Params params = std::make_tuple(id);
+        return query_uniqe(database, params,
+                "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
                     " FROM `items` WHERE id = ?");
-        if (stmt == NULL)
-            throw std::logic_error("Can't create statement");
-        
-        unsigned long size[5];
-        uint64_t qid = 0;
-        MYSQL_TIME qcreate;
-        MYSQL_TIME qmodify;
-        uint64_t quserid;
-        uint64_t qcategoryid;
-        uint64_t qamount;
-        char qdesc[256+1];
-        
-        MYSQL_BIND result[5] = {
-            mbind(qid, size[0]),
-            mbind(qcreate, size[1]),
-            mbind(qmodify, size[2]),
-            mbind(qamount, size[3]),
-            mbind_fixed((char*)qdesc, size[4], sizeof(qdesc)),
-        };
-        static_assert(sizeof(size)/sizeof(size[0]) ==
-                sizeof(result)/sizeof(result[0]),
-                "result and size array should have the same length");
-
-        unsigned long psize[1];
-            MYSQL_BIND param[1] = {
-                mbind(id, psize[0])
-            };
-        
-        if (mysql_stmt_bind_param(stmt, param))
-                throw std::logic_error(
-                        std::string("Can't bind param in statement: ")
-                        +mysql_stmt_error(stmt));
-        if (mysql_stmt_bind_result(stmt, result))
-            throw std::logic_error(
-                    std::string("Can't bind result in statement: ")
-                    +mysql_stmt_error(stmt));
-        if (mysql_stmt_execute(stmt))
-            throw std::logic_error(
-                    std::string("Can't execute statement: ")
-                    +mysql_stmt_error(stmt));
-        // Fetch data
-        auto err = mysql_stmt_fetch(stmt);
-        log_assert(err == 0 || err == MYSQL_NO_DATA);
-        if (err == 0)
-        {
-            log_assert_equal(id, qid);
-            // Name is uniq so we should't get more than one user
-            log_assert_equal(mysql_stmt_fetch(stmt), MYSQL_NO_DATA);
-
-            return Item(database, qid,
-                    mysql_to_time(qcreate), mysql_to_time(qmodify),
-                    quserid, qcategoryid,
-                    qamount, std::string(qdesc));
-        }
-        return Item();
     }
 
     static void find_all(Database &database,
             User const &user, std::vector<Item> &items)
     {
-        MYSQL_STMT* stmt = database.statement(
-                    "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
+        typedef std::tuple<uint64_t> Params;
+        Params params = std::make_tuple(user.id());
+        query(database, params, items,
+                "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
                     " FROM `items` WHERE userid = ?");
-        if (stmt == NULL)
-            throw std::logic_error("Can't create statement");
-        unsigned long size[7];
-        uint64_t qid;
-        MYSQL_TIME qcreate;
-        MYSQL_TIME qmodify;
-        uint64_t quserid;
-        uint64_t qcategoryid;
-        uint64_t qamount;
-        char qdesc[256+1];
-        
-        MYSQL_BIND result[7] = {
-            mbind(qid, size[0]),
-            mbind(qcreate, size[1]),
-            mbind(qmodify, size[2]),
-            mbind(quserid, size[3]),
-            mbind(qcategoryid, size[4]),
-            mbind(qamount, size[5]),
-            mbind_fixed((char*)qdesc, size[6], sizeof(qdesc)),
-        };
-        static_assert(sizeof(size)/sizeof(size[0]) ==
-                sizeof(result)/sizeof(result[0]),
-                "result and size array should have the same length");
-
-        uint64_t puserid = user.id();
-        unsigned long psize[1];
-        MYSQL_BIND param[1] = {
-            mbind(puserid, psize[0])
-        };
-        
-        if (mysql_stmt_bind_param(stmt, param))
-                throw std::logic_error(
-                        std::string("Can't bind param in statement: ")
-                        +mysql_stmt_error(stmt));
-        if (mysql_stmt_bind_result(stmt, result))
-            throw std::logic_error(
-                    std::string("Can't bind param in statement: ")
-                    +mysql_stmt_error(stmt));
-        if (mysql_stmt_execute(stmt))
-            throw std::logic_error(
-                    std::string("Can't execute statement: ")
-                    +mysql_stmt_error(stmt));
-        while (mysql_stmt_fetch(stmt) == 0)
-        {
-            log_assert_equal(user.id(), quserid);
-            items.push_back(Item(database, qid,
-                        mysql_to_time(qcreate), mysql_to_time(qmodify),
-                        quserid, qcategoryid,
-                        qamount, std::string(qdesc)));
-        }
     }
 
 private:
@@ -204,9 +104,50 @@ private:
             uint64_t amount, std::string description) :
         _database(&database), _detached(false), _id(id),
         _create(create), _modify(modify),
-        _userid(userid), _categoryid(categoryid), _amount(amount),
-        _description(description)
+        _userid(userid), _categoryid(categoryid),
+        _amount(amount), _description(description)
     {}
+
+    template <typename Params>
+    static Item query_uniqe(Database &database, Params const &params,
+            std::string const &query)
+    {
+        typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
+                uint64_t, uint64_t, uint64_t, FixedString<256>> Results;
+        Item item;
+        database.query<Params, Results>(params, query,
+                [&database, &item] (Results &res) {
+                    log_assert(!item.valid());
+                    item = Item(database,
+                        std::get<0>(res),
+                        mysql_to_time(std::get<1>(res)),
+                        mysql_to_time(std::get<2>(res)),
+                        std::get<3>(res),
+                        std::get<4>(res),
+                        std::get<5>(res),
+                        std::get<6>(res).to_string());
+                });
+        return item;
+    }
+
+    template <typename Params>
+    static void query(Database &database, Params const &params,
+            std::vector<Item> &items, std::string const &query)
+    {
+        typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
+                uint64_t, uint64_t, uint64_t, FixedString<256>> Results;
+        database.query<Params, Results>(params, query,
+                [&database, &items] (Results &res) {
+                    items.push_back( Item(database,
+                        std::get<0>(res),
+                        mysql_to_time(std::get<1>(res)),
+                        mysql_to_time(std::get<2>(res)),
+                        std::get<3>(res),
+                        std::get<4>(res),
+                        std::get<5>(res),
+                        std::get<6>(res).to_string()));
+                });
+    }
 
     Database *_database;
     bool _invalid;

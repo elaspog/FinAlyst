@@ -6,7 +6,7 @@
 #include "session.hpp"
 #include "database.hpp"
 #include "category.hpp"
-#include "plan.hpp"
+#include "planitem.hpp"
 #include "item.hpp"
 #include "template_common.hpp"
 #include "utils.hpp"
@@ -109,8 +109,8 @@ namespace WebGUI
         (void)request;
         fcout << "<a href=\"?q=planitem_add\">Add plan item</a>";
         fcout << "<h2>Plan</h2>";
-        std::vector<Plan> plan;
-        Plan::find_all(database, session.user(), plan);
+        std::vector<PlanItem> plan;
+        PlanItem::find_all(database, session.user(), plan);
         fcout << "<table><tr><th>Name</th><th>Description</th></tr>";
         for (auto &item : plan)
         {

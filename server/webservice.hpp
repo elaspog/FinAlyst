@@ -109,8 +109,8 @@ namespace WebService
         // TODO: handle limit
         (void)request;
         html_content(fcout);
-        std::vector<Plan> planitems;
-        Plan::find_all(database, session.user(), planitems);
+        std::vector<PlanItem> planitems;
+        PlanItem::find_all(database, session.user(), planitems);
         fcout << "{\n";
         fcout << "\t\"sucess\": true,\n";
         fcout << "\t\"status\": 200,\n";

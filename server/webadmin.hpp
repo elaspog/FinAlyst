@@ -38,7 +38,7 @@ namespace WebAdmin
             fcout << "<tr><td>";
             fcout << user.name() << "</td>";
             // TODO: create date
-            fcout << "<td>" << "</td>";
+            fcout << "<td>" << user.create() << "</td>";
             fcout << "<td><a href=\"finance?useredit&id=" << user.id() << "\">Edit</a></td>";
             fcout << "</tr>"<< std::endl;
         }

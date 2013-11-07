@@ -39,8 +39,10 @@ public:
     }
 
     Database& database() { return *_database; }
+    bool valid() const { return !_invalid; }
     uint64_t id() const { return _id; }
     void id(uint64_t id) { _id = id; }
+    time_t create() { return _create; }
     std::string name() { lazy_load(); return _name; }
     void name(std::string const &name) { _name = name; }
     bool administrator() const { return !_invalid && _id == 0; }
@@ -126,192 +128,29 @@ public:
 
     static User find(Database &database, uint64_t id)
     {
-        if (id == 0)
-        {
-            User root;
-            root.name("root");
-            root.id(0);
-            root._invalid = false;
-            return root;
-        }
-        MYSQL_STMT* stmt = database.statement(
-                    "SELECT `id`, `create`, `modify`, `name`, `passdigest`, `passsalt` "
-                    " FROM `users` WHERE id = ?");
-        if (stmt == NULL)
-            throw std::logic_error("Can't create statement");
-        unsigned long size[6];
-        uint64_t qid = 0;
-        MYSQL_TIME create;
-        MYSQL_TIME modify;
-        char qname[64+1];
-        unsigned char qpassdigest[128+1];
-        unsigned char qpasssalt[128+1];
-        
-        MYSQL_BIND result[6] = {
-            mbind(qid, size[0]),
-            mbind(create, size[1]),
-            mbind(modify, size[2]),
-            mbind_fixed((char*)qname, size[3], sizeof(qname)),
-            mbind_fixed((char*)qpassdigest, size[4], sizeof(qpassdigest)),
-            mbind_fixed((char*)qpasssalt, size[5], sizeof(qpasssalt)),
-        };
-        static_assert(sizeof(size)/sizeof(size[0]) ==
-                sizeof(result)/sizeof(result[0]),
-                "result and size array should have the same length");
-
-        unsigned long psize[1];
-            MYSQL_BIND param[1] = {
-                mbind(id, psize[0])
-            };
-        
-        if (mysql_stmt_bind_param(stmt, param))
-                throw std::logic_error(
-                        std::string("Can't bind param in statement: ")
-                        +mysql_stmt_error(stmt));
-        if (mysql_stmt_bind_result(stmt, result))
-            throw std::logic_error(
-                    std::string("Can't bind result in statement: ")
-                    +mysql_stmt_error(stmt));
-        if (mysql_stmt_execute(stmt))
-            throw std::logic_error(
-                    std::string("Can't execute statement: ")
-                    +mysql_stmt_error(stmt));
-        // Fetch data
-        auto err = mysql_stmt_fetch(stmt);
-        if (err != 0 && err != MYSQL_NO_DATA)
-        {
-            throw std::logic_error(
-                    std::string("Can't fetch statement: ")
-                    +mysql_stmt_error(stmt));
-        }
-        if (err == 0)
-        {
-            log_assert_equal(id, qid);
-            // Name is uniq so we should't get more than one user
-            log_assert_equal(mysql_stmt_fetch(stmt), MYSQL_NO_DATA);
-
-            // Make sure all the results fetched
-            while (mysql_stmt_fetch(stmt) == 0);
-
-            return User(database, qid,
-                    mysql_to_time(create), mysql_to_time(modify),
-                    std::string(qname),
-                    (passtype*)qpassdigest, (passtype*)qpasssalt);
-        }
-        return User();
+        typedef std::tuple<uint64_t> Params;
+        Params params = std::make_tuple(id);
+        return query_uniqe(database, params,
+                "SELECT `id`, `create`, `modify`, `name`, `passdigest`, `passsalt` "
+                " FROM `users` WHERE id = ?");
     }
 
     static User find_by_name(Database &database, std::string const &name)
     {
-        MYSQL_STMT* stmt = database.statement(
-                    "SELECT `id`, `create`, `modify`, `name`, `passdigest`, `passsalt` "
-                    " FROM `users` WHERE name = ?");
-        if (stmt == NULL)
-            throw std::logic_error("Can't create statement");
-        unsigned long size[6];
-        uint64_t qid = 0;
-        MYSQL_TIME create;
-        MYSQL_TIME modify;
-        char qname[64+1];
-        unsigned char qpassdigest[128+1];
-        unsigned char qpasssalt[128+1];
-        
-        MYSQL_BIND result[6] = {
-            mbind(qid, size[0]),
-            mbind(create, size[1]),
-            mbind(modify, size[2]),
-            mbind_fixed((char*)qname, size[3], sizeof(qname)),
-            mbind_fixed((char*)qpassdigest, size[4], sizeof(qpassdigest)),
-            mbind_fixed((char*)qpasssalt, size[5], sizeof(qpasssalt)),
-        };
-        static_assert(sizeof(size)/sizeof(size[0]) ==
-                sizeof(result)/sizeof(result[0]),
-                "result and size array should have the same length");
-
-        unsigned long psize[1];
-            MYSQL_BIND param[1] = {
-                mbind(name, psize[0])
-            };
-        
-        if (mysql_stmt_bind_param(stmt, param))
-                throw std::logic_error(
-                        std::string("Can't bind param in statement: ")
-                        +mysql_stmt_error(stmt));
-        if (mysql_stmt_bind_result(stmt, result))
-            throw std::logic_error(
-                    std::string("Can't bind result in statement: ")
-                    +mysql_stmt_error(stmt));
-        if (mysql_stmt_execute(stmt))
-            throw std::logic_error(
-                    std::string("Can't execute statement: ")
-                    +mysql_stmt_error(stmt));
-        // Fetch data
-        auto err = mysql_stmt_fetch(stmt);
-        if (err != 0 && err != MYSQL_NO_DATA)
-        {
-            throw std::logic_error(
-                    std::string("Can't fetch statement: ")
-                    +mysql_stmt_error(stmt));
-        }
-        if (err == 0)
-        {
-            log_assert_equal(name, qname);
-            // Name is uniq so we should't get more than one user
-            log_assert_equal(mysql_stmt_fetch(stmt), MYSQL_NO_DATA);
-
-            // Make sure all the results fetched
-            while (mysql_stmt_fetch(stmt) == 0);
-
-            return User(database, qid,
-                    mysql_to_time(create), mysql_to_time(modify),
-                    std::string(qname),
-                    (passtype*)qpassdigest, (passtype*)qpasssalt);
-        }
-        return User();
+        typedef std::tuple<FixedString<64>> Params;
+        Params params = std::make_tuple<FixedString<64>>(name);
+        return query_uniqe(database, params,
+                "SELECT `id`, `create`, `modify`, `name`, `passdigest`, `passsalt` "
+                " FROM `users` WHERE name = ?");
     }
 
     static void find_all(Database &database, std::vector<User> &users)
     {
-        MYSQL_STMT* stmt = database.statement(
-                    "SELECT `id`, `create`, `modify`, `name`, `passdigest`, `passsalt` "
-                    " FROM `users`");
-        if (stmt == NULL)
-            throw std::logic_error("Can't create statement");
-        unsigned long size[6];
-        uint64_t id = 0;
-        MYSQL_TIME create;
-        MYSQL_TIME modify;
-        char name[64+1];
-        unsigned char passdigest[128+1];
-        unsigned char passsalt[128+1];
-        
-        MYSQL_BIND result[6] = {
-            mbind(id, size[0]),
-            mbind(create, size[1]),
-            mbind(modify, size[2]),
-            mbind_fixed((char*)name, size[3], sizeof(name)),
-            mbind_fixed((char*)passdigest, size[4], sizeof(passdigest)),
-            mbind_fixed((char*)passsalt, size[5], sizeof(passsalt)),
-        };
-        static_assert(sizeof(size)/sizeof(size[0]) ==
-                sizeof(result)/sizeof(result[0]),
-                "result and size array should have the same length");
-        
-        if (mysql_stmt_bind_result(stmt, result))
-            throw std::logic_error(
-                    std::string("Can't bind result in statement: ")
-                    +mysql_stmt_error(stmt));
-        if (mysql_stmt_execute(stmt))
-            throw std::logic_error(
-                    std::string("Can't execute statement: ")
-                    +mysql_stmt_error(stmt));
-        while (mysql_stmt_fetch(stmt) == 0)
-        {
-            users.push_back(User(database, id,
-                    mysql_to_time(create), mysql_to_time(modify),
-                    std::string(name),
-                    (passtype*)passdigest, (passtype*)passsalt));
-        }
+        typedef std::tuple<> Params;
+        Params params;
+        query(database, params, users,
+                "SELECT `id`, `create`, `modify`, `name`, `passdigest`, `passsalt` "
+                " FROM `users`");
     }
 
     static bool table_exists(Database &database) { return database.table_exists("users"); }
@@ -366,6 +205,47 @@ private:
         /*for (unsigned i = 0; i < sizeof(binsalt); ++i)
             LOG_DEBUG("%02X", ((unsigned char*)binsalt)[i]);*/
         digest_pass(password_, (void*)binsalt, sizeof(binsalt), passdigest_);
+    }
+
+    template <typename Params>
+    static User query_uniqe(Database &database, Params const &params,
+            std::string const &query)
+    {
+        typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
+                FixedString<64>,
+                FixedString<128>, FixedString<128>> Results;
+        User user;
+        database.query<Params, Results>(params, query,
+                [&database, &user] (Results &res) {
+                    log_assert(!user.valid());
+                    user = User(database,
+                        std::get<0>(res),
+                        mysql_to_time(std::get<1>(res)),
+                        mysql_to_time(std::get<2>(res)),
+                        std::get<3>(res).to_string(),
+                        (passtype*)std::get<4>(res).c_str(),
+                        (passtype*)std::get<5>(res).c_str());
+                });
+        return user;
+    }
+
+    template <typename Params>
+    static void query(Database &database, Params const &params,
+            std::vector<User> &users, std::string const &query)
+    {
+        typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
+                FixedString<64+1>,
+                FixedString<128+1>, FixedString<128+1>> Results;
+        database.query<Params, Results>(params, query,
+                [&database, &users] (Results &res) {
+                    users.push_back(User(database,
+                        std::get<0>(res),
+                        mysql_to_time(std::get<1>(res)),
+                        mysql_to_time(std::get<2>(res)),
+                        std::get<3>(res).c_str(),
+                        (passtype*)std::get<4>(res).c_str(),
+                        (passtype*)std::get<5>(res).c_str()));
+                });
     }
 
     void lazy_load()
