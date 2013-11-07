@@ -1,5 +1,9 @@
 # FinAlyst changelog #
 
+## 2013. 11. 08. ##
+
+* fixed root login
+
 ## 2013. 11. 07. ##
 
 * refactored database query handling

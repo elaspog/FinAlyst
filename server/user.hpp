@@ -128,6 +128,14 @@ public:
 
     static User find(Database &database, uint64_t id)
     {
+         if (id == 0)
+        {
+            User root;
+            root.name("root");
+            root.id(0);
+            root._invalid = false;
+            return root;
+        }
         typedef std::tuple<uint64_t> Params;
         Params params = std::make_tuple(id);
         return query_uniqe(database, params,
@@ -234,8 +242,8 @@ private:
             std::vector<User> &users, std::string const &query)
     {
         typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
-                FixedString<64+1>,
-                FixedString<128+1>, FixedString<128+1>> Results;
+                FixedString<64>,
+                FixedString<128>, FixedString<128>> Results;
         database.query<Params, Results>(params, query,
                 [&database, &users] (Results &res) {
                     users.push_back(User(database,
