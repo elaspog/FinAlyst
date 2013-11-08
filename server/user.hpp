@@ -133,6 +133,7 @@ public:
             User root;
             root.name("root");
             root.id(0);
+            root._loaded = true;
             root._invalid = false;
             return root;
         }
