@@ -38,6 +38,16 @@ public:
         _modify = _create;
     }
 
+    static User root()
+    {
+        User u;
+        u.name("root");
+        u.id(0);
+        u._loaded = true;
+        u._invalid = false;
+        return u;
+    }
+
     Database& database() { return *_database; }
     bool valid() const { return !_invalid; }
     uint64_t id() const { return _id; }
@@ -128,15 +138,7 @@ public:
 
     static User find(Database &database, uint64_t id)
     {
-         if (id == 0)
-        {
-            User root;
-            root.name("root");
-            root.id(0);
-            root._loaded = true;
-            root._invalid = false;
-            return root;
-        }
+        if (id == 0) return root();
         typedef std::tuple<uint64_t> Params;
         Params params = std::make_tuple(id);
         return query_uniqe(database, params,

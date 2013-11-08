@@ -59,9 +59,7 @@ static bool authenticate(Database &database, OptsMap const &config,
         auto it = config.find("root-pass");
         if (it != config.end() && password == it->second)
         {
-            user = User();
-            user.name("root");
-            user.id(0);
+            user = User::root();
             return true;
         }
         return false;
