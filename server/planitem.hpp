@@ -83,7 +83,7 @@ public:
         Params params = std::make_tuple(id);
         return query_uniqe(database, params,
                 "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
-                    " FROM `items` WHERE id = ?");
+                    " FROM `planitems` WHERE id = ?");
     }
 
     static void find_all(Database &database,
@@ -93,7 +93,7 @@ public:
         Params params = std::make_tuple(user.id());
         query(database, params, items,
                 "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
-                    " FROM `items` WHERE userid = ?");
+                    " FROM `planitems` WHERE userid = ?");
     }
 
     /*static void find_all(Database &database,
