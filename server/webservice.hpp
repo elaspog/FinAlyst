@@ -64,7 +64,7 @@ namespace WebService
             fcout << "\t\t\t\"modify\": \"/Date(" << item.modify()*1000 << ")/\",\n";
             fcout << "\t\t\t\"categoryid\": \"" << item.category().id() << "\",\n";
             fcout << "\t\t\t\"amount\": \"" << item.amount() << "\",\n";
-            fcout << "\t\t\t\"description\": \"" << item.description() << "\",\n";
+            fcout << "\t\t\t\"description\": \"" << item.description() << "\"\n";
             fcout << "\t\t}";
             if (count < items.size()) fcout << ",";
             fcout << std::endl;
