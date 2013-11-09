@@ -71,7 +71,9 @@ int main(void) {
     FCGX_InitRequest(&fcgi_request, 0, 0);
 
     // Setup logging
-    log_target_file("/var/log/finance.log");
+    char const *log_file = getenv("LOG_FILE");
+    if (log_file == NULL) log_file = "/var/log/finance.log";
+    log_target_file(log_file);
 
     // Initialize application
     char const *config_file = getenv("CONFIG_FILE");
