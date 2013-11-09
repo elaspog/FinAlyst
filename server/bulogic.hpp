@@ -113,6 +113,34 @@ namespace BusinessLogic
         }
     }
 
+    void item_destroy(Database &database, Session &session, Request &request)
+    {
+        if (request.type() == RequestType::Post)
+        {
+            std::string id_str = request.post("itemid");
+            uint64_t itemid;
+            if (id_str.empty() || !parse_unsigned(id_str, itemid))
+                throw MalformedRequest("Invalid or missing itemid!");
+            Item::destroy(database, session.user().id(), itemid);
+        } else {
+            throw MethodNotAllowed("item_destroy only accepts POST request");
+        }
+    }
+
+    void planitem_destroy(Database &database, Session &session, Request &request)
+    {
+        if (request.type() == RequestType::Post)
+        {
+            std::string id_str = request.post("planitemid");
+            uint64_t planitemid;
+            if (id_str.empty() || !parse_unsigned(id_str, planitemid))
+                throw MalformedRequest("Invalid or missing planitemid!");
+            PlanItem::destroy(database, session.user().id(), planitemid);
+        } else {
+            throw MethodNotAllowed("planitem_destroy only accepts POST request");
+        }
+    }
+
 }
 
 #endif

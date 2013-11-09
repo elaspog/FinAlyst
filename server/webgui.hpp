@@ -43,12 +43,15 @@ namespace WebGUI
         fcout << "<h2>Item</h2>";
         std::vector<Item> items;
         Item::find_all(database, session.user(), items);
-        fcout << "<table><tr><th>Név</th><th>Megjegyzés</th></tr>";
+        fcout << "<table><tr><th>Név</th><th>Megjegyzés</th><th></th></tr>";
         for (auto &item : items)
         {
             fcout << "<tr>";
             fcout << "<td>" << item.amount() << "</td>";
             fcout << "<td>" << item.description() << "</td>";
+            fcout << "<td><form method=\"POST\" action=\"?q=item_destroy\">";
+                fcout << "<input type=\"hidden\" name=\"itemid\" value=\"" << item.id() << "\">";
+                fcout << "<input type=\"submit\" value=\"Delete\"></form></td>";
             fcout << "</tr>";
         }
         fcout << "</table>";
@@ -114,12 +117,15 @@ namespace WebGUI
         fcout << "<h2>Plan</h2>";
         std::vector<PlanItem> plan;
         PlanItem::find_all(database, session.user(), plan);
-        fcout << "<table><tr><th>Name</th><th>Description</th></tr>";
+        fcout << "<table><tr><th>Name</th><th>Description</th><th></th></tr>";
         for (auto &item : plan)
         {
             fcout << "<tr>";
             fcout << "<td>" << item.amount() << "</td>";
             fcout << "<td>" << item.description() << "</td>";
+            fcout << "<td><form method=\"POST\" action=\"?q=planitem_destroy\">";
+                fcout << "<input type=\"hidden\" name=\"planitemid\" value=\"" << item.id() << "\">";
+                fcout << "<input type=\"submit\" value=\"Delete\"></form></td>";
             fcout << "</tr>";
         }
         fcout << "</table>";
@@ -184,6 +190,32 @@ namespace WebGUI
         }
     }
 
+    void item_destroy(Database &database, Session &session,
+            Request &request, std::ostream &fcout)
+    {
+        if (request.type() == RequestType::Post)
+        {
+            BusinessLogic::item_destroy(database, session, request);
+            fcout << "Location: ?q=item\r\n";
+            fcout << "\r\n\r\n";
+        } else {
+            javascriptredirect(fcout, "?q=item");
+        }
+    }
+
+    void planitem_destroy(Database &database, Session &session,
+            Request &request, std::ostream &fcout)
+    {
+        if (request.type() == RequestType::Post)
+        {
+            BusinessLogic::planitem_destroy(database, session, request);
+            fcout << "Location: ?q=plan\r\n";
+            fcout << "\r\n\r\n";
+        } else {
+            javascriptredirect(fcout, "?q=plan");
+        }
+    }
+
     void error404(OptsMap const &config,
             Request &request, std::ostream &fcout)
     {
@@ -229,6 +261,10 @@ namespace WebGUI
             category_add(database, session, request, fcout);
         else if (request.query() == "category_destroy")
             category_destroy(database, session, request, fcout);
+        else if (request.query() == "item_destroy")
+            item_destroy(database, session, request, fcout);
+        else if (request.query() == "planitem_destroy")
+            planitem_destroy(database, session, request, fcout);
         else error404(config, request, fcout); 
 
         if (request.type() == RequestType::Get)

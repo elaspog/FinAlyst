@@ -4,7 +4,7 @@
 
 * API docs specifiy maximum string sizes
 * Refactoring in webservice
-* Category destroy work on webgui nad webservice interface
+* Category/Item/Planitem destroy works on webgui nad webservice interface
 * Configurable log file location
 
 ## 2013. 11. 08. ##

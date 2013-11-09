@@ -207,6 +207,30 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/item_add
             "description": "Icecream"
         }
     }
+
+### Destroy item
+
+**Request type:** HTTP POST
+
+**Request arguments:**
+
+|| **Key**      || **Type**     || **Description**      ||
+|| itemid       || integer      || item id              ||
+
+
+**Result data:** null
+
+**Example URL:**
+http://myfinalyst/fcgi-bin/finalyst?q=webservice/item_destroy
+
+**JSON example:**
+
+    {
+        "sucess": true,
+        "status": 200,
+        "data": null
+    }
+
     
 ## Plan item
 
@@ -285,5 +309,28 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitem_add
             "amount": 10000,
             "description": "Got my wage, spend this part on sport"
         }
+    }
+
+### Destroy planitem
+
+**Request type:** HTTP POST
+
+**Request arguments:**
+
+|| **Key**      || **Type**     || **Description**      ||
+|| planitemid       || integer      || item id              ||
+
+
+**Result data:** null
+
+**Example URL:**
+http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitem_destroy
+
+**JSON example:**
+
+    {
+        "sucess": true,
+        "status": 200,
+        "data": null
     }
 

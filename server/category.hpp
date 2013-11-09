@@ -38,8 +38,8 @@ public:
 
     bool valid() { return !_invalid; }
     uint64_t id() const { return _id; }
-    time_t create() { return _create; }
-    time_t modify() { return _modify; }
+    time_t create() { lazy_load(); return _create; }
+    time_t modify() { lazy_load(); return _modify; }
     std::string name() { lazy_load(); return _name; }
     std::string description() { lazy_load(); return _description; }
 

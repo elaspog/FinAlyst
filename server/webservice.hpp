@@ -127,6 +127,22 @@ namespace WebService
         return 200;
     }
 
+    unsigned item_destroy(Database &database, Session &session,
+            Request &request, std::ostream &fcout)
+    {
+        BusinessLogic::item_destroy(database, session, request);
+        fcout << "\t\"data\": null,\n";
+        return 200;
+    }
+
+    unsigned planitem_destroy(Database &database, Session &session,
+            Request &request, std::ostream &fcout)
+    {
+        BusinessLogic::planitem_destroy(database, session, request);
+        fcout << "\t\"data\": null,\n";
+        return 200;
+    }
+
     void handle_request(Database &database,
             Session &session,
             Request &request, std::ostream &fcout)
@@ -150,6 +166,10 @@ namespace WebService
                 status = category_add(database, session, request, fcout);
             else if (query == "webservice/category_destroy")
                 status = category_destroy(database, session, request, fcout);
+            else if (query == "webservice/item_destroy")
+                status = item_destroy(database, session, request, fcout);
+            else if (query == "webservice/planitem_destroy")
+                status = planitem_destroy(database, session, request, fcout);
             else
             {
                 fcout << "\t\"data\": null\n";
