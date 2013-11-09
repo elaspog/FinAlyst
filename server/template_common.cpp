@@ -6,6 +6,17 @@ void html_content(std::ostream &fcout)
          << "\r\n";
 }
 
+void htmlredirect(std::ostream &fcout, std::string const &dest)
+{
+    fcout << "<!doctype html>";
+    fcout << "<html>";
+    fcout <<    "<head>";
+    fcout <<        "<meta http-equiv=\"refresh\" content=\"0;" << dest << "\">";
+    fcout <<    "<head>";
+    fcout <<    "<body></body>";
+    fcout << "</html>";
+}
+
 void header(std::ostream &fcout,
         OptsMap const &config, std::string const &title)
 {
