@@ -8,6 +8,7 @@ void html_content(std::ostream &fcout)
 
 void htmlredirect(std::ostream &fcout, std::string const &dest)
 {
+    html_content(fcout);
     fcout << "<!doctype html>";
     fcout << "<html>";
     fcout <<    "<head>";
@@ -15,6 +16,13 @@ void htmlredirect(std::ostream &fcout, std::string const &dest)
     fcout <<    "<head>";
     fcout <<    "<body></body>";
     fcout << "</html>";
+}
+
+void javascriptredirect(std::ostream &fcout, std::string const &dest)
+{
+    fcout << "<script>";
+    fcout << "window.location = \"" << dest << "\"";
+    fcout << "</script>";
 }
 
 void header(std::ostream &fcout,

@@ -6,6 +6,7 @@
 
 void html_content(std::ostream &fcout);
 void htmlredirect(std::ostream &fcout, std::string const &dest);
+void javascriptredirect(std::ostream &fcout, std::string const &dest);
 void header(std::ostream &fcout,
         OptsMap const &assetpath, std::string const &title);
 void footer(std::ostream &fcout);
