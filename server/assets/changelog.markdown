@@ -1,8 +1,13 @@
 # FinAlyst changelog #
 
+## 2013. 11. 09. ##
+
+* API docs specifiy maximum string sizes
+
 ## 2013. 11. 08. ##
 
 * fixed root login
+* fixed plan item listing
 
 ## 2013. 11. 07. ##
 

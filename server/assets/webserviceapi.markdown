@@ -45,8 +45,8 @@ List all the categories with name and description.
 || id           || integer      || category id          ||
 || create       || datetime     || create date          ||
 || modify       || datetime     || last modification    ||
-|| name         || string       || category name        ||
-|| description  || string       || category description ||
+|| name         || string[127]  || category name        ||
+|| description  || string[255]  || category description ||
 
 **Example URL:**
 http://myfinalyst/fcgi-bin/finalyst?q=webservice/categories
@@ -72,8 +72,8 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/categories
 **Request arguments:**
 
 || **Key**      || **Type**     || **Description**      ||
-|| name         || string       || category name        ||
-|| description  || string       || category description ||
+|| name         || string[127]  || category name        ||
+|| description  || string[255]  || category description ||
 
 
 **Result data:**
@@ -84,8 +84,8 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/categories
 || id           || integer      || new category id      ||
 || create       || datetime     || create date          ||
 || modify       || datetime     || last modification    ||
-|| name         || string       || category name        ||
-|| description  || string       || category description ||
+|| name         || string[127]  || category name        ||
+|| description  || string[255]  || category description ||
 
 **Example URL:**
 http://myfinalyst/fcgi-bin/finalyst?q=webservice/category_add
@@ -123,7 +123,7 @@ List all the items with category, amount and description.
 || modify       || datetime     || last modification    ||
 || categoryid   || integer      || category id          ||
 || amount       || integer      || money amount         ||
-|| description  || string       || item description     ||
+|| description  || string[255]  || item description     ||
 
 **Example URL:**
 http://myfinalyst/fcgi-bin/finalyst?q=webservice/items
@@ -152,7 +152,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/items
 || **Key**      || **Type**     || **Description**      ||
 || categoryid   || integer      || category id          ||
 || amount       || integer      || money amount         ||
-|| description  || string       || item description     ||
+|| description  || string[255]  || item description     ||
 
 **Result data:**
 
@@ -164,7 +164,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/items
 || modify       || datetime     || last modification    ||
 || categoryid   || integer      || category id          ||
 || amount       || integer      || money amount         ||
-|| description  || string       || item description     ||
+|| description  || string[255]  || item description     ||
 
 **Example URL:**
 http://myfinalyst/fcgi-bin/finalyst?q=webservice/item_add
@@ -202,7 +202,7 @@ List all the plan items with category, amount and description.
 || modify       || datetime     || last modification    ||
 || categoryid   || integer      || category id          ||
 || amount       || integer      || money amount         ||
-|| description  || string       || item description     ||
+|| description  || string[255]  || item description     ||
 
 **Example URL:**
 http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitems
@@ -231,7 +231,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitems
 || **Key**      || **Type**     || **Description**      ||
 || categoryid   || integer      || category id          ||
 || amount       || integer      || money amount         ||
-|| description  || string       || item description     ||
+|| description  || string[255]  || item description     ||
 
 **Result data:**
 
@@ -243,7 +243,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitems
 || modify       || datetime     || last modification    ||
 || categoryid   || integer      || category id          ||
 || amount       || integer      || money amount         ||
-|| description  || string       || item description     ||
+|| description  || string[255]  || item description     ||
 
 **Example URL:**
 http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitem_add

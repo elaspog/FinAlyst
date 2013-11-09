@@ -78,6 +78,8 @@ public:
         } else
         {
             // TODO: do update
+            typedef std::tuple<MYSQL_TIME,
+                    FixedString<128>, FixedString<256>> Params;
         }
     }
 
