@@ -23,6 +23,13 @@
     }
 };*/
 
+struct RowDoesNotExists : std::invalid_argument
+{
+    RowDoesNotExists(std::string const &message) :
+        std::invalid_argument(message)
+    {}
+};
+
 template <size_t size>
 class FixedString
 {
@@ -249,27 +256,34 @@ public:
         //Params param_values;
         unsigned long param_size[std::tuple_size<Params>::value];
         MYSQL_BIND params[std::tuple_size<Params>::value];
-        SetupBind<Params, std::tuple_size<Params>::value>::setup(
-                param_values,
-                param_size+std::tuple_size<Params>::value-1,
-                params+std::tuple_size<Params>::value-1);
-        
-        if (mysql_stmt_bind_param(stmt, params))
-            throw std::logic_error(
-                    std::string("Can't bind param in statement: ")
-                    +mysql_stmt_error(stmt));
+        if (std::tuple_size<Params>::value > 0)
+        {
+            SetupBind<Params, std::tuple_size<Params>::value>::setup(
+                    param_values,
+                    param_size+std::tuple_size<Params>::value-1,
+                    params+std::tuple_size<Params>::value-1);
+            
+            if (mysql_stmt_bind_param(stmt, params))
+                throw std::logic_error(
+                        std::string("Can't bind param in statement: ")
+                        +mysql_stmt_error(stmt));
+        }
         // Setup result set
         Results res_values;
         unsigned long res_size[std::tuple_size<Results>::value];
         MYSQL_BIND results[std::tuple_size<Results>::value];
-        SetupBind<Results, std::tuple_size<Results>::value>::setup(
-                res_values,
-                res_size+std::tuple_size<Results>::value-1,
-                results+std::tuple_size<Results>::value-1);
-        if (mysql_stmt_bind_result(stmt, results))
-            throw std::logic_error(
-                    std::string("Can't bind result in statement: ")
-                    +mysql_stmt_error(stmt));
+        if (std::tuple_size<Results>::value > 0)
+        {
+            LOG_DEBUG("Results: %d", std::tuple_size<Results>::value);
+            SetupBind<Results, std::tuple_size<Results>::value>::setup(
+                    res_values,
+                    res_size+std::tuple_size<Results>::value-1,
+                    results+std::tuple_size<Results>::value-1);
+            if (mysql_stmt_bind_result(stmt, results))
+                throw std::logic_error(
+                        std::string("Can't bind result in statement: ")
+                        +mysql_stmt_error(stmt));
+        }
 
         // Execute query
         if (mysql_stmt_execute(stmt))
@@ -279,26 +293,46 @@ public:
         // Fetch data
         /*for (unsigned i = 0; i<std::tuple_size<Results>::value;++i)
                 LOG_DEBUG("%d size: %d", i, res_size[i]);*/
-        int error;
-        while ((error = mysql_stmt_fetch (stmt)) == 0)
+        if (std::tuple_size<Results>::value > 0)
         {
-            LOG_DEBUG("Got result");
-            /*for (unsigned i = 0; i<std::tuple_size<Results>::value;++i)
-                LOG_DEBUG("%d got size: %d", i, res_size[i]);*/
-            cb(res_values);
+            int error;
+            while ((error = mysql_stmt_fetch (stmt)) == 0)
+            {
+                LOG_DEBUG("Got result");
+                /*for (unsigned i = 0; i<std::tuple_size<Results>::value;++i)
+                    LOG_DEBUG("%d got size: %d", i, res_size[i]);*/
+                cb(res_values);
+            }
+            if (error != MYSQL_NO_DATA)
+            {
+                LOG_DEBUG("fetch error: %d", error);
+                throw std::logic_error(
+                        std::string("Can't fetch: ")
+                        +mysql_stmt_error(stmt));
+            }
         }
-        if (error != MYSQL_NO_DATA)
-        {
-            LOG_DEBUG("fetch error: %d", error);
-            throw std::logic_error(
-                    std::string("Can't fetch: ")
-                    +mysql_stmt_error(stmt));
-        }
+    }
+
+    template <class Params>
+    void execute(Params const &param_values, std::string const &query)
+    {
+        typedef std::tuple<> Results;
+        Results result_values;
+        this->query<Params, Results>(param_values, query,
+                [] (Results &res) {
+                    (void)res;
+                    log_assert(false);
+                });
     }
 
     uint64_t last_insert_id()
     {
         return mysql_insert_id(_mysql);
+    }
+
+    uint64_t affected_rows()
+    {
+        return mysql_affected_rows(_mysql);
     }
 
 private:

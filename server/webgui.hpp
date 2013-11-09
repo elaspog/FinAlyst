@@ -63,12 +63,15 @@ namespace WebGUI
         fcout << "<h2>Categories:</h2>";
         std::vector<Category> categories;
         Category::find_all(database, session.user(), categories);
-        fcout << "<table><tr><th>Név</th><th>Megjegyzés</th></tr>";
+        fcout << "<table><tr><th>Név</th><th>Megjegyzés</th><th></th></tr>";
         for (auto &category : categories)
         {
             fcout << "<tr>";
             fcout << "<td>" << category.name() << "</td>";
             fcout << "<td>" << category.description() << "</td>";
+            fcout << "<td><form method=\"POST\" action=\"?q=category_destroy\">";
+                fcout << "<input type=\"hidden\" name=\"categoryid\" value=\"" << category.id() << "\">";
+                fcout << "<input type=\"submit\" value=\"Delete\"></form></td>";
             fcout << "</tr>";
         }
         fcout << "</table>";
@@ -161,11 +164,42 @@ namespace WebGUI
         }
 
         fcout << "<br />";
-        fcout << "<form name=\"category_add_form\"  method=\"post\" action=\"?q=category_add\">";
+        fcout << "<form name=\"category_add_form\" method=\"post\" action=\"?q=category_add\">";
         fcout << "Name: <input name=\"name\">";
         fcout << "Description: <textarea rows=\"3\" name=\"description\"></textarea>";
         fcout << "<input type=\"submit\" value=\"Kategória hozzáadása\">";
         fcout << "</form>";
+    }
+
+    void category_destroy(Database &database, Session &session,
+            Request &request, std::ostream &fcout)
+    {
+        if (request.type() == RequestType::Post)
+        {
+            BusinessLogic::category_destroy(database, session, request);
+            fcout << "Location: ?q=category\r\n";
+            fcout << "\r\n\r\n";
+        } else {
+            javascriptredirect(fcout, "?q=category");
+        }
+    }
+
+    void error404(OptsMap const &config,
+            Request &request, std::ostream &fcout)
+    {
+        if (request.type() != RequestType::Get)
+        {
+            header(fcout, config, "Error 404");
+            menu(fcout);
+            fcout << "<div class=\"content\">";
+        }
+        // TODO: handle 404 gracefully
+        fcout << "Error: 404";
+        if (request.type() != RequestType::Get)
+        {
+            fcout << "</div>";
+            footer(fcout);
+        }
     }
 
     void handle_request(OptsMap const &config,
@@ -193,11 +227,9 @@ namespace WebGUI
             category_page(database, session, request, fcout);
         else if (request.query() == "category_add")
             category_add(database, session, request, fcout);
-        else
-        {
-            // TODO: handle 404 gracefully
-            fcout << "Error: 404";
-        }
+        else if (request.query() == "category_destroy")
+            category_destroy(database, session, request, fcout);
+        else error404(config, request, fcout); 
 
         if (request.type() == RequestType::Get)
         {

@@ -42,7 +42,7 @@ public:
         if (_detached)
         {
             MYSQL_STMT* stmt = _database->statement(
-                    "INSERT INTO `plan` (`create`, `modify`, `userid`, `categoryid`, `amount`, `description`) "
+                    "INSERT INTO `planitems` (`create`, `modify`, `userid`, `categoryid`, `amount`, `description`) "
                     "VALUES (?, ?, ?, ?, ?, ?)");
             if (stmt == NULL)
                 throw std::logic_error("Can't create statement");

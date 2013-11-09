@@ -3,6 +3,8 @@
 ## 2013. 11. 09. ##
 
 * API docs specifiy maximum string sizes
+* Refactoring in webservice
+* Category destroy work on webgui nad webservice interface
 
 ## 2013. 11. 08. ##
 

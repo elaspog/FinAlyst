@@ -13,20 +13,21 @@ class Category
 public:
 
     Category() :
-        _database(NULL), _invalid(true),
+        _database(NULL),
+        _invalid(true), _detached(true), _loaded(false), _changed(false),
         _id(std::numeric_limits<uint64_t>::max())
     {}
 
     Category(Database &database, uint64_t categoryid) :
         _database(&database),
-        _invalid(false), _detached(false), _loaded(false),
+        _invalid(false), _detached(false), _loaded(false), _changed(false),
         _id(categoryid)
     {}
 
     Category(Database &database, User const &user,
             std::string const &name, std::string description) :
         _database(&database),
-        _invalid(false), _detached(true), _loaded(true),
+        _invalid(false), _detached(true), _loaded(true), _changed(true),
         _userid(user.id()), _name(name), _description(description)
     {
         time(&_create);
@@ -41,6 +42,29 @@ public:
     time_t modify() { return _modify; }
     std::string name() { lazy_load(); return _name; }
     std::string description() { lazy_load(); return _description; }
+
+    static void destroy(Database &database, uint64_t userid, uint64_t id)
+    {
+        typedef std::tuple<uint64_t, uint64_t> Params;
+        Params params = std::make_tuple(id, userid);
+        database.execute(params,
+                "DELETE FROM `categories` WHERE id = ? and userid = ?");
+        uint64_t affected = database.affected_rows();
+        LOG_DEBUG("Affected: %d", affected);
+        log_assert(affected <= 1);
+        if (affected == 0)
+            throw RowDoesNotExists("Can't destroy category, user does not "
+                    "have that category!");
+    }
+
+    static void destroy(Database &database, Category &obj)
+    {
+        log_assert(!obj._invalid && !obj._detached);
+        destroy(database, obj.user().id(), obj.id());
+        obj._detached = true;
+    }
+
+    void destroy() { destroy(*_database, *this); }
 
     void save()
     {
@@ -108,7 +132,7 @@ private:
             time_t create, time_t modify, uint64_t userid,
             std::string const &name, std::string description) :
         _database(&database),
-        _invalid(false), _detached(false), _loaded(true),
+        _invalid(false), _detached(false), _loaded(true), _changed(false),
         _id(id), _create(create), _modify(modify),
         _userid(userid), _name(name), _description(description)
     {}
@@ -163,6 +187,7 @@ private:
     bool _invalid;
     bool _detached;
     bool _loaded;
+    bool _changed;
 
     uint64_t _id;
     time_t _create;

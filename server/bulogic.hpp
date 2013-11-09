@@ -99,6 +99,20 @@ namespace BusinessLogic
         }
     }
 
+    void category_destroy(Database &database, Session &session, Request &request)
+    {
+        if (request.type() == RequestType::Post)
+        {
+            std::string id_str = request.post("categoryid");
+            uint64_t categoryid;
+            if (id_str.empty() || !parse_unsigned(id_str, categoryid))
+                throw MalformedRequest("Invalid or missing categoryid!");
+            Category::destroy(database, session.user().id(), categoryid);
+        } else {
+            throw MethodNotAllowed("category_destroy only accepts POST request");
+        }
+    }
+
 }
 
 #endif

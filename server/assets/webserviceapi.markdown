@@ -105,6 +105,30 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/category_add
     }
 
 
+### Destroy category
+
+**Request type:** HTTP POST
+
+**Request arguments:**
+
+|| **Key**      || **Type**     || **Description**      ||
+|| categoryid   || integer      || category id          ||
+
+
+**Result data:** null
+
+**Example URL:**
+http://myfinalyst/fcgi-bin/finalyst?q=webservice/category_destroy
+
+**JSON example:**
+
+    {
+        "sucess": true,
+        "status": 200,
+        "data": null
+    }
+
+
 ## Item
 
 ### List items
