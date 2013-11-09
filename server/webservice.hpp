@@ -64,8 +64,6 @@ namespace WebService
         (void)request;
         std::vector<PlanItem> planitems;
         PlanItem::find_all(database, session.user(), planitems);
-        fcout << "\t\"sucess\": true,\n";
-        fcout << "\t\"status\": 200,\n";
         fcout << "\t\"data\": [\n";
         unsigned count = 0;
         for (auto &item : planitems)
