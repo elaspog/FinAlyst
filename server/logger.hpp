@@ -22,7 +22,7 @@ void log_message(LogLevel level, const char * format, ...);
 
 #define log_assert(expr)                        \
     do {                                        \
-        if (!expr)                              \
+        if (!(expr))                            \
         {                                       \
             LOG_DEBUG(__FILE__ ":%d assertation falied: " #expr, __LINE__);    \
             abort();                            \
