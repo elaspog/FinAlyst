@@ -51,3 +51,19 @@ void urldecode(char *dst, const char *src)
     *dst++ = '\0';
 }
 
+void jsonescape(std::string const &str, std::ostream &out)
+{
+    unsigned length = 0;
+    char escaped[str.length()*2]; // Escaped string can't be longer
+    for (char c : str)
+    {
+        if (c == '"')
+        {
+            escaped[length] = '\\';
+            ++length;
+        }
+        escaped[length] = c;
+        ++length;
+    }
+    out.write(escaped, length);
+}
