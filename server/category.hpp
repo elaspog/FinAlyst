@@ -43,6 +43,18 @@ public:
     std::string name() { lazy_load(); return _name; }
     std::string description() { lazy_load(); return _description; }
 
+    void name(std::string const &name)
+    {
+        _name = name;
+        _changed = true;
+    }
+
+    void description(std::string const &desc)
+    {
+        _description = desc;
+        _changed = true;
+    }
+
     static void destroy(Database &database, uint64_t userid, uint64_t id)
     {
         typedef std::tuple<uint64_t, uint64_t> Params;
@@ -68,6 +80,8 @@ public:
 
     void save()
     {
+        log_assert(!_invalid);
+        log_assert(_loaded);
         if (_detached)
         {
             MYSQL_STMT* stmt = _database->statement(
@@ -101,9 +115,25 @@ public:
             _id = _database->last_insert_id();
         } else
         {
-            // TODO: do update
+            time_t current;
+            time(&current);
+            MYSQL_TIME newmodify;
+            time_to_mysql(current, newmodify);
             typedef std::tuple<MYSQL_TIME,
-                    FixedString<128>, FixedString<256>> Params;
+                    FixedString<128>, FixedString<256>, uint64_t, uint64_t> Params;
+            Params params = std::make_tuple(
+                    newmodify,
+                    FixedString<128>(_name),
+                    FixedString<256>(_description), _id, _userid);
+            _database->execute(params,
+                "UPDATE `categories` SET `modify` = ?, "
+                " `name` = ?, `description` = ? "
+                " WHERE id = ? AND userid = ?");
+            uint64_t affected = _database->affected_rows();
+            log_assert(affected <= 1);
+            if (affected == 0)
+                throw RowDoesNotExists("Can't change category, category does "
+                        "not exists!");
         }
     }
 
@@ -130,7 +160,7 @@ private:
 
     Category(Database &database, uint64_t id,
             time_t create, time_t modify, uint64_t userid,
-            std::string const &name, std::string description) :
+            std::string const &name, std::string const &description) :
         _database(&database),
         _invalid(false), _detached(false), _loaded(true), _changed(false),
         _id(id), _create(create), _modify(modify),

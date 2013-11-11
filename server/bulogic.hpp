@@ -28,6 +28,13 @@ namespace BusinessLogic
         {}
     };
 
+    struct AccessDenied : std::invalid_argument
+    {
+        AccessDenied(std::string const &message) :
+            std::invalid_argument(message)
+        {}
+    };
+
     void item_add(Database &database, Session &session, Request &request)
     {
         if (request.type() == RequestType::Post)
@@ -94,6 +101,32 @@ namespace BusinessLogic
             Category n(database, session.user(),
                     name, request.post("description"));
             n.save();
+        } else {
+            throw MethodNotAllowed("category_add only accepts POST request");
+        }
+    }
+
+    void category_edit(Database &database, Session &session, Request &request)
+    {
+        if (request.type() == RequestType::Post)
+        {
+            std::string id_str = request.post("categoryid");
+            uint64_t categoryid;
+            if (id_str.empty() || !parse_unsigned(id_str, categoryid))
+                throw MalformedRequest("Invalid or missing categoryid!");
+            std::string name = request.post("name");
+            if (name.empty())
+                throw MalformedRequest("Category name can't be empty!");
+            Category c = Category::find(database, categoryid);
+            if (!c.valid())
+                throw MalformedRequest("Category does not exists!");
+            if (c.user().id() != session.user().id())
+                throw AccessDenied("Can't change category, "
+                        "it belongs to different user!");
+            LOG_DEBUG("Name: %s desc: %s", c.name().c_str(), c.description().c_str());
+            c.name(name);
+            c.description(request.post("description"));
+            c.save();
         } else {
             throw MethodNotAllowed("category_add only accepts POST request");
         }

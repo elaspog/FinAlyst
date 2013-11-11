@@ -1,5 +1,6 @@
 #include "utils.hpp"
 #include <algorithm>
+#include <cstring>
 
 bool parse_unsigned(std::string const &str, uint64_t &value)
 {
@@ -64,6 +65,47 @@ void jsonescape(std::string const &str, std::ostream &out)
         }
         escaped[length] = c;
         ++length;
+    }
+    out.write(escaped, length);
+}
+
+void htmlspecialchars(std::string const &str, std::ostream &out)
+{
+    static const char quot[] = "&quot;";
+    static const char apos[] = "&apos;";
+    static const char amp[] = "&amp;";
+    static const char lt[] = "&lt;";
+    static const char gt[] = "&gt;";
+    unsigned length = 0;
+    char escaped[str.length()*5]; // Escaped string can't be longer
+    for (char c : str)
+    {
+        switch (c)
+        {
+        case '"':
+            memcpy(escaped+length, quot, sizeof(quot)-1);
+            length += sizeof(quot)-1;
+            break;
+        case '\'':
+            memcpy(escaped+length, apos, sizeof(apos)-1);
+            length += sizeof(apos)-1;
+            break;
+        case '&':
+            memcpy(escaped+length, amp, sizeof(amp)-1);
+            length += sizeof(amp)-1;
+            break;
+        case '<':
+            memcpy(escaped+length, lt, sizeof(lt)-1);
+            length += sizeof(lt)-1;
+            break;
+        case '>':
+            memcpy(escaped+length, gt, sizeof(gt)-1);
+            length += sizeof(gt)-1;
+            break;
+        default:
+            escaped[length] = c;
+            ++length;
+        }
     }
     out.write(escaped, length);
 }

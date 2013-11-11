@@ -127,6 +127,15 @@ namespace WebService
         return 200;
     }
 
+    unsigned category_edit(Database &database, Session &session,
+            Request &request, std::ostream &fcout)
+    {
+        BusinessLogic::category_edit(database, session, request);
+        // TODO: return changed planitem
+        fcout << "\t\"data\": null,\n";
+        return 200;
+    }
+
     unsigned category_destroy(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
@@ -172,6 +181,8 @@ namespace WebService
                 status = categories(database, session, request, fcout);
             else if (query == "webservice/category_add")
                 status = category_add(database, session, request, fcout);
+            else if (query == "webservice/category_edit")
+                status = category_edit(database, session, request, fcout);
             else if (query == "webservice/category_destroy")
                 status = category_destroy(database, session, request, fcout);
             else if (query == "webservice/item_destroy")
@@ -189,6 +200,11 @@ namespace WebService
                 fcout << "\t\"sucess\": false,\n";
             fcout << "\t\"status\": " << status << "\n";
         } catch (BusinessLogic::MethodNotAllowed const &error)
+        {
+            fcout << "\t\"sucess\": false,\n";
+            fcout << "\t\"status\": 405,\n";
+            fcout << "\t\"data\": null\n";
+        } catch (BusinessLogic::AccessDenied const &error)
         {
             fcout << "\t\"sucess\": false,\n";
             fcout << "\t\"status\": 405,\n";

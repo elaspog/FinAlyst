@@ -105,6 +105,46 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/category_add
     }
 
 
+### Edit category
+
+**Request type:** HTTP POST
+
+**Request arguments:**
+
+|| **Key**      || **Type**     || **Description**      ||
+|| name         || string[127]  || category name        ||
+|| description  || string[255]  || category description ||
+
+
+**Result data:**
+
+**TODO: result not implemented**
+
+|| **Key**      || **Type**     || **Description**      ||
+|| id           || integer      || new category id      ||
+|| create       || datetime     || create date          ||
+|| modify       || datetime     || last modification    ||
+|| name         || string[127]  || category name        ||
+|| description  || string[255]  || category description ||
+
+**Example URL:**
+http://myfinalyst/fcgi-bin/finalyst?q=webservice/category_edit
+
+**JSON example:**
+
+    {
+        "sucess": true,
+        "status": 200,
+        "data": {
+            "id": 1,
+            "create": "/Date(1224567700000)/",
+            "modify": "/Date(1224567700000)/",
+            "name": "Cheese",
+            "description": "Special and not so special cheese"
+        }
+    }
+
+
 ### Destroy category
 
 **Request type:** HTTP POST

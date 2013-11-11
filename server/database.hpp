@@ -317,7 +317,6 @@ public:
     void execute(Params const &param_values, std::string const &query)
     {
         typedef std::tuple<> Results;
-        Results result_values;
         this->query<Params, Results>(param_values, query,
                 [] (Results &res) {
                     (void)res;

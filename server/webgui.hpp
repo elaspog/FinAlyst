@@ -72,9 +72,10 @@ namespace WebGUI
             fcout << "<tr>";
             fcout << "<td>" << category.name() << "</td>";
             fcout << "<td>" << category.description() << "</td>";
-            fcout << "<td><form method=\"POST\" action=\"?q=category_destroy\">";
-                fcout << "<input type=\"hidden\" name=\"categoryid\" value=\"" << category.id() << "\">";
-                fcout << "<input type=\"submit\" value=\"Delete\"></form></td>";
+            fcout <<   "<td>";
+            fcout <<     "<a href=\"?q=category_edit&categoryid=" << category.id() << "\">Edit</a>";
+            fcout <<     "<a rel=\"nofollow\" href=\"?q=category_destroy_conform&categoryid=" << category.id() << "\">Delete</a>";
+            fcout <<   "</td>";
             fcout << "</tr>";
         }
         fcout << "</table>";
@@ -177,6 +178,53 @@ namespace WebGUI
         fcout << "</form>";
     }
 
+    void category_edit(Database &database, Session &session,
+            Request &request, std::ostream &fcout)
+    {
+        if (request.type() == RequestType::Post)
+        {
+            BusinessLogic::category_edit(database, session, request);
+            fcout << "Location: ?q=category\r\n";
+            fcout << "\r\n\r\n";
+            return;
+        }
+        uint64_t categoryid;
+        if (!parse_unsigned(request.get("categoryid"), categoryid))
+        {
+            // TODO
+            throw std::logic_error("categoryid not a number");
+        }
+        Category category = Category::find(database, categoryid);
+        if (!category.valid())
+        {
+            // TODO
+            throw std::logic_error("category does not exists");
+        }
+        fcout << "<br />";
+        fcout << "<form name=\"category_edit_form\" method=\"post\" action=\"?q=category_edit\">";
+        fcout << "<input type=\"hidden\" name=\"categoryid\" value=\""
+            << category.id() <<  "\">";
+        fcout << "Name: <input name=\"name\" value=\"";
+            htmlspecialchars(category.name(), fcout);
+            fcout << "\">";
+        fcout << "Description: <textarea rows=\"3\" name=\"description\">";
+            htmlspecialchars(category.description(), fcout);
+            fcout << "</textarea>";
+        fcout << "<input type=\"submit\" value=\"Save\">";
+        fcout << "</form>";
+    }
+
+    void category_destroy_conform(Request &request, std::ostream &fcout)
+    {
+        fcout << "<form method=\"POST\" action=\"?q=category_destroy\">";
+            fcout << "Are you sure you want to delete?";
+            fcout << "<input type=\"hidden\" name=\"categoryid\" value=\""
+                << request.get("categoryid") << "\">";
+            fcout << "<a href=\"?q=category\">Back</a>";
+            fcout << "<input type=\"submit\" value=\"Delete\">";
+        fcout << "</form>";
+    }
+
     void category_destroy(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
@@ -259,6 +307,10 @@ namespace WebGUI
             category_page(database, session, request, fcout);
         else if (request.query() == "category_add")
             category_add(database, session, request, fcout);
+        else if (request.query() == "category_edit")
+            category_edit(database, session, request, fcout);
+        else if (request.query() == "category_destroy_conform")
+            category_destroy_conform(request, fcout);
         else if (request.query() == "category_destroy")
             category_destroy(database, session, request, fcout);
         else if (request.query() == "item_destroy")

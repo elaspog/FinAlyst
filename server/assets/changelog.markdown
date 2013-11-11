@@ -1,5 +1,14 @@
 # FinAlyst changelog #
 
+## 2013. 11. 11. ##
+
+* Added category change support
+
+## 2013. 11. 10. ##
+
+* JSON string escaped
+* fixed date bug on 32bit platform
+
 ## 2013. 11. 09. ##
 
 * API docs specifiy maximum string sizes

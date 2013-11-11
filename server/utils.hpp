@@ -8,5 +8,6 @@
 bool parse_unsigned(std::string const &str, uint64_t &value);
 void urldecode(char *dst, const char *src);
 void jsonescape(std::string const &str, std::ostream &out);
+void htmlspecialchars(std::string const &str, std::ostream &out);
 
 #endif
