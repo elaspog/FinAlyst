@@ -7,6 +7,7 @@
 
 #include "database.hpp"
 #include "user.hpp"
+#include "utils.hpp"
 
 class Category
 {
@@ -36,7 +37,8 @@ public:
 
     User user() { return User(*_database, _userid); }
 
-    bool valid() { return !_invalid; }
+    bool detached() const { return _detached; }
+    bool valid() const { return !_invalid; }
     uint64_t id() const { return _id; }
     time_t create() { lazy_load(); return _create; }
     time_t modify() { lazy_load(); return _modify; }
@@ -115,6 +117,7 @@ public:
             _id = _database->last_insert_id();
         } else
         {
+            if (!_changed) return;
             time_t current;
             time(&current);
             MYSQL_TIME newmodify;
@@ -154,6 +157,21 @@ public:
         query(database, params, categories,
                 "SELECT `id`, `create`, `modify`, `userid`, `name`, `description` "
                 " FROM `categories` WHERE userid = ?");
+    }
+
+    void to_json(std::ostream &output)
+    {
+        output << "\t\t{\n";
+        output << "\t\t\t\"id\": \"" << id() << "\",\n";
+        output << "\t\t\t\"create\": \"/Date(" << (uint64_t)create()*1000 << ")/\",\n";
+        output << "\t\t\t\"modify\": \"/Date(" << (uint64_t)modify()*1000 << ")/\",\n";
+        output << "\t\t\t\"name\": \"";
+            jsonescape(name(), output);
+            output << "\",\n";
+        output << "\t\t\t\"description\": \"";
+            jsonescape(description(), output);
+            output << "\"\n";
+        output << "\t\t}";
     }
 
 private:

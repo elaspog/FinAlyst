@@ -1,5 +1,10 @@
 # FinAlyst changelog #
 
+## 2013. 11. 19. ##
+
+* Added item, planitem change support
+* Added proper result to JSON webservice, create/modify category, planitem and item
+
 ## 2013. 11. 11. ##
 
 * Added category change support

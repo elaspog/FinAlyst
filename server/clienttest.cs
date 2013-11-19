@@ -56,7 +56,7 @@ class FinAliyst
         return stream;
     }
 
-    static string Login()
+    static string Login(string hostname)
     {
         Stream dataStream;
         WebRequest request;
@@ -68,7 +68,7 @@ class FinAliyst
         string username = Console.ReadLine();
         Console.Write("password: ");
         string password = Console.ReadLine();
-        request = WebRequest.Create("http://localhost/fcgi-bin/finance?q=webservice/login");
+        request = WebRequest.Create("http://"+hostname+"/fcgi-bin/finance?q=webservice/login");
         request.Method = "POST";
         request.ContentType = "application/x-www-form-urlencoded";
         datastr = "username="+username+"&password="+password;
@@ -97,7 +97,7 @@ class FinAliyst
         }
     }
 
-    static void AddCategory(string sessionid)
+    static void AddCategory(string hostname, string sessionid)
     {
         Stream dataStream;
         WebRequest request;
@@ -109,7 +109,7 @@ class FinAliyst
         string name = Console.ReadLine();
         Console.Write("description: ");
         string desc = Console.ReadLine();
-        request = WebRequest.Create("http://localhost/fcgi-bin/finance?q=webservice/category_add");
+        request = WebRequest.Create("http://"+hostname+"/fcgi-bin/finance?q=webservice/category_add");
         request.Method = "POST";
         request.ContentType = "application/x-www-form-urlencoded";
         datastr = "sessionid="+sessionid+"&name="+name+"&description="+desc;
@@ -129,13 +129,13 @@ class FinAliyst
         }
     }
 
-    static Category[] ListCategories(string sessionid)
+    static Category[] ListCategories(string hostname, string sessionid)
     {
         Stream dataStream;
         WebRequest request;
 
         Console.WriteLine("### List categories ###");
-        string url = "http://localhost/fcgi-bin/finance?q=webservice/categories&sessionid="+sessionid;
+        string url = "http://"+hostname+"/fcgi-bin/finance?q=webservice/categories&sessionid="+sessionid;
         request = WebRequest.Create(Uri.EscapeUriString(url));
         request.Method = "GET";
         WebResponse response = request.GetResponse();
@@ -149,7 +149,7 @@ class FinAliyst
         }
     }
 
-    static void Logout(string sessionid)
+    static void Logout(string hostname, string sessionid)
     {
         Stream dataStream;
         WebRequest request;
@@ -157,7 +157,7 @@ class FinAliyst
         UTF8Encoding encoding = new UTF8Encoding();
 
         Console.WriteLine("### Logout ###");
-        request = WebRequest.Create("http://localhost/fcgi-bin/finance?q=webservice/logout");
+        request = WebRequest.Create("http://"+hostname+"/fcgi-bin/finance?q=webservice/logout");
         request.Method = "POST";
         request.ContentType = "application/x-www-form-urlencoded";
         datastr = "sessionid="+sessionid;
@@ -179,18 +179,20 @@ class FinAliyst
 
     static void Main()
     {
-        string sessionid = Login();
+        Console.Write("Host: ");
+        string hostname = Console.ReadLine();
+        string sessionid = Login(hostname);
         Console.WriteLine();
-        AddCategory(sessionid);
+        AddCategory(hostname, sessionid);
         Console.WriteLine();
-        Category[] categories = ListCategories(sessionid);
+        Category[] categories = ListCategories(hostname, sessionid);
         foreach (var category in categories)
         {
             Console.WriteLine("{0}\t{1}\t{2}\t{3}\t{4}", category.Id,
                     category.Create, category.Modify,
                     category.Name, category.Description);
         }
-        Logout(sessionid);
+        Logout(hostname, sessionid);
     }
 
 }

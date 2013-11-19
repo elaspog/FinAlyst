@@ -32,12 +32,32 @@ public:
     Category category() { return Category(*_database, _categoryid); }
     User user() { return User(*_database, _userid); }
 
-    bool valid() { return !_invalid; }
+    bool detached() const { return _detached; }
+    bool valid() const { return !_invalid; }
     uint64_t id() const { return _id; }
     time_t create() { lazy_load(); return _create; }
     time_t modify() { lazy_load(); return _modify; }
     uint64_t amount() { lazy_load(); return _amount; }
     std::string description() { lazy_load(); return _description; }
+
+    void amount(uint64_t amount)
+    {
+        _amount = amount;
+        _changed = true;
+    }
+
+    void description(std::string const &desc)
+    {
+        _description = desc;
+        _changed = true;
+    }
+
+    void category(Category &category)
+    {
+        log_assert(!category.detached() && category.valid());
+        _categoryid = category.id();
+        _changed = true;
+    }
 
     static void destroy(Database &database, uint64_t userid, uint64_t id)
     {
@@ -64,6 +84,8 @@ public:
 
     void save()
     {
+        log_assert(!_invalid);
+        log_assert(_loaded);
         if (_detached)
         {
             MYSQL_STMT* stmt = _database->statement(
@@ -98,7 +120,27 @@ public:
             _id = _database->last_insert_id();
         } else
         {
-            // TODO: do update
+            if (!_changed) return;
+            time_t current;
+            time(&current);
+            MYSQL_TIME newmodify;
+            time_to_mysql(current, newmodify);
+            typedef std::tuple<MYSQL_TIME, uint64_t,
+                    uint64_t, FixedString<256>, uint64_t, uint64_t> Params;
+            Params params = std::make_tuple(
+                    newmodify,
+                    _categoryid,
+                    _amount,
+                    FixedString<256>(_description), _id, _userid);
+            _database->execute(params,
+                "UPDATE `items` SET `modify` = ?, `categoryid` = ?, "
+                " `amount` = ?, `description` = ? "
+                " WHERE id = ? AND userid = ?");
+            uint64_t affected = _database->affected_rows();
+            log_assert(affected <= 1);
+            if (affected == 0)
+                throw RowDoesNotExists("Can't change item, category does "
+                        "not exists!");
         }
     }
 
@@ -119,6 +161,20 @@ public:
         query(database, params, items,
                 "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
                     " FROM `items` WHERE userid = ?");
+    }
+
+    void to_json(std::ostream &output)
+    {
+        output << "\t\t{\n";
+        output << "\t\t\t\"id\": \"" << id() << "\",\n";
+        output << "\t\t\t\"create\": \"/Date(" << (uint64_t)create()*1000 << ")/\",\n";
+        output << "\t\t\t\"modify\": \"/Date(" << (uint64_t)modify()*1000 << ")/\",\n";
+        output << "\t\t\t\"categoryid\": \"" << category().id() << "\",\n";
+        output << "\t\t\t\"amount\": \"" << amount() << "\",\n";
+        output << "\t\t\t\"description\": \"";
+            jsonescape(description(), output);
+            output << "\"\n";
+        output << "\t\t}";
     }
 
 private:

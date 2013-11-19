@@ -78,8 +78,6 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/categories
 
 **Result data:**
 
-**TODO: result not implemented**
-
 || **Key**      || **Type**     || **Description**      ||
 || id           || integer      || new category id      ||
 || create       || datetime     || create date          ||
@@ -111,14 +109,13 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/category_add
 
 **Request arguments:**
 
-|| **Key**      || **Type**     || **Description**      ||
-|| name         || string[127]  || category name        ||
-|| description  || string[255]  || category description ||
+|| **Key**      || **Type**     || **Description**                 ||
+|| categoryid   || integer      || category id                     ||
+|| name         || string[127]  || category name (optional)        ||
+|| description  || string[255]  || category description (optional) ||
 
 
 **Result data:**
-
-**TODO: result not implemented**
 
 || **Key**      || **Type**     || **Description**      ||
 || id           || integer      || new category id      ||
@@ -182,7 +179,7 @@ List all the items with category, amount and description.
 **Result data:**
 
 || **Key**      || **Type**     || **Description**      ||
-|| id           || integer      || category id          ||
+|| id           || integer      || item id              ||
 || create       || datetime     || create date          ||
 || modify       || datetime     || last modification    ||
 || categoryid   || integer      || category id          ||
@@ -220,10 +217,8 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/items
 
 **Result data:**
 
-**TODO: result not implemented**
-
 || **Key**      || **Type**     || **Description**      ||
-|| id           || integer      || category id          ||
+|| id           || integer      || item id              ||
 || create       || datetime     || create date          ||
 || modify       || datetime     || last modification    ||
 || categoryid   || integer      || category id          ||
@@ -232,6 +227,46 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/items
 
 **Example URL:**
 http://myfinalyst/fcgi-bin/finalyst?q=webservice/item_add
+
+**JSON example:**
+
+    {
+        "sucess": true,
+        "status": 200,
+        "data": {
+            "id": 1,
+            "create": "/Date(1224456600000)/",
+            "modify": "/Date(1224456600000)/",
+            "categoryid": 3,
+            "amount": 800,
+            "description": "Icecream"
+        }
+    }
+
+### Edit item
+
+**Request type:** HTTP POST
+
+**Request arguments:**
+
+|| **Key**      || **Type**     || **Description**             ||
+|| itemid       || integer      || item id                     ||
+|| categoryid   || integer      || category id (optional)      ||
+|| amount       || integer      || money amount (optional)     ||
+|| description  || string[255]  || item description (optional) ||
+
+**Result data:**
+
+|| **Key**      || **Type**     || **Description**      ||
+|| id           || integer      || item id              ||
+|| create       || datetime     || create date          ||
+|| modify       || datetime     || last modification    ||
+|| categoryid   || integer      || category id          ||
+|| amount       || integer      || money amount         ||
+|| description  || string[255]  || item description     ||
+
+**Example URL:**
+http://myfinalyst/fcgi-bin/finalyst?q=webservice/item_edit
 
 **JSON example:**
 
@@ -285,7 +320,7 @@ List all the plan items with category, amount and description.
 **Result data:**
 
 || **Key**      || **Type**     || **Description**      ||
-|| id           || integer      || category id          ||
+|| id           || integer      || plan item id         ||
 || create       || datetime     || create date          ||
 || modify       || datetime     || last modification    ||
 || categoryid   || integer      || category id          ||
@@ -323,10 +358,8 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitems
 
 **Result data:**
 
-**TODO: result not implemented**
-
 || **Key**      || **Type**     || **Description**      ||
-|| id           || integer      || category id          ||
+|| id           || integer      || plan item id         ||
 || create       || datetime     || create date          ||
 || modify       || datetime     || last modification    ||
 || categoryid   || integer      || category id          ||
@@ -351,6 +384,47 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitem_add
         }
     }
 
+### Edit planitem
+
+**Request type:** HTTP POST
+
+**Request arguments:**
+
+|| **Key**      || **Type**     || **Description**             ||
+|| planid       || integer      || plan item id                ||
+|| categoryid   || integer      || category id (optional)      ||
+|| amount       || integer      || money amount (optional)     ||
+|| description  || string[255]  || item description (optional) ||
+
+**Result data:**
+
+|| **Key**      || **Type**     || **Description**      ||
+|| id           || integer      || plan item id         ||
+|| create       || datetime     || create date          ||
+|| modify       || datetime     || last modification    ||
+|| categoryid   || integer      || category id          ||
+|| amount       || integer      || money amount         ||
+|| description  || string[255]  || item description     ||
+
+**Example URL:**
+http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitem_edit
+
+**JSON example:**
+
+    {
+        "sucess": true,
+        "status": 200,
+        "data": {
+            "id": 1,
+            "create": "/Date(1224778800000)/",
+            "modify": "/Date(1224778800000)/",
+            "categoryid": 3,
+            "amount": 10000,
+            "description": "Got my wage, spend this part on sport"
+        }
+    }
+
+
 ### Destroy planitem
 
 **Request type:** HTTP POST
@@ -358,7 +432,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitem_add
 **Request arguments:**
 
 || **Key**      || **Type**     || **Description**      ||
-|| planitemid       || integer      || item id              ||
+|| planitemid   || integer      || item id              ||
 
 
 **Result data:** null

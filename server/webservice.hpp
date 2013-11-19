@@ -15,9 +15,10 @@ namespace WebService
     unsigned item_add(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
-        BusinessLogic::item_add(database, session, request);
-        // TODO: return created planitem
-        fcout << "\t\"data\": null\n";
+        Item c = BusinessLogic::item_add(database, session, request);
+        fcout << "\t\"data\": {\n";
+        c.to_json(fcout);
+        fcout << "\t},";
         return 200;
     }
 
@@ -33,16 +34,7 @@ namespace WebService
         for (auto &item : items)
         {
             count++;
-            fcout << "\t\t{\n";
-            fcout << "\t\t\t\"id\": \"" << item.id() << "\",\n";
-            fcout << "\t\t\t\"create\": \"/Date(" << (uint64_t)item.create()*1000 << ")/\",\n";
-            fcout << "\t\t\t\"modify\": \"/Date(" << (uint64_t)item.modify()*1000 << ")/\",\n";
-            fcout << "\t\t\t\"categoryid\": \"" << item.category().id() << "\",\n";
-            fcout << "\t\t\t\"amount\": \"" << item.amount() << "\",\n";
-            fcout << "\t\t\t\"description\": \"";
-                jsonescape(item.description(), fcout);
-                fcout << "\"\n";
-            fcout << "\t\t}";
+            item.to_json(fcout);
             if (count < items.size()) fcout << ",";
             fcout << std::endl;
         }
@@ -53,9 +45,10 @@ namespace WebService
     unsigned planitem_add(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
-        BusinessLogic::planitem_add(database, session, request);
-        // TODO: return created planitem
-        fcout << "\t\"data\": null,\n";
+        PlanItem c = BusinessLogic::planitem_add(database, session, request);
+        fcout << "\t\"data\": {\n";
+        c.to_json(fcout);
+        fcout << "\t},";
         return 200;
     }
 
@@ -71,16 +64,7 @@ namespace WebService
         for (auto &item : planitems)
         {
             count++;
-            fcout << "\t\t{\n";
-            fcout << "\t\t\t\"id\": \"" << item.id() << "\",\n";
-            fcout << "\t\t\t\"create\": \"/Date(" << (uint64_t)item.create()*1000 << ")/\",\n";
-            fcout << "\t\t\t\"modify\": \"/Date(" << (uint64_t)item.modify()*1000 << ")/\",\n";
-            fcout << "\t\t\t\"categoryid\": \"" << item.category().id() << "\",\n";
-            fcout << "\t\t\t\"amount\": \"" << item.amount() << "\",\n";
-            fcout << "\t\t\t\"description\": \"";
-                jsonescape(item.description(), fcout);
-                fcout << "\"\n";
-            fcout << "\t\t}";
+            item.to_json(fcout);
             if (count < planitems.size()) fcout << ",";
             fcout << std::endl;
         }
@@ -100,17 +84,7 @@ namespace WebService
         for (auto &category : categories)
         {
             count++;
-            fcout << "\t\t{\n";
-            fcout << "\t\t\t\"id\": \"" << category.id() << "\",\n";
-            fcout << "\t\t\t\"create\": \"/Date(" << (uint64_t)category.create()*1000 << ")/\",\n";
-            fcout << "\t\t\t\"modify\": \"/Date(" << (uint64_t)category.modify()*1000 << ")/\",\n";
-            fcout << "\t\t\t\"name\": \"";
-                jsonescape(category.name(), fcout);
-                fcout << "\",\n";
-            fcout << "\t\t\t\"description\": \"";
-                jsonescape(category.description(), fcout);
-                fcout << "\"\n";
-            fcout << "\t\t}";
+            category.to_json(fcout);
             if (count < categories.size()) fcout << ",";
             fcout << std::endl;
         }
@@ -121,18 +95,40 @@ namespace WebService
     unsigned category_add(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
-        BusinessLogic::category_add(database, session, request);
-        // TODO: return created planitem
-        fcout << "\t\"data\": null,\n";
+        Category c = BusinessLogic::category_add(database, session, request);
+        fcout << "\t\"data\": {\n";
+        c.to_json(fcout);
+        fcout << "},";
         return 200;
     }
 
     unsigned category_edit(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
-        BusinessLogic::category_edit(database, session, request);
-        // TODO: return changed planitem
-        fcout << "\t\"data\": null,\n";
+        Category c = BusinessLogic::category_edit(database, session, request);
+        fcout << "\t\"data\": {\n";
+        c.to_json(fcout);
+        fcout << "},";
+        return 200;
+    }
+
+    unsigned item_edit(Database &database, Session &session,
+            Request &request, std::ostream &fcout)
+    {
+        Item c = BusinessLogic::item_edit(database, session, request);
+        fcout << "\t\"data\": {\n";
+        c.to_json(fcout);
+        fcout << "},";
+        return 200;
+    }
+
+    unsigned planitem_edit(Database &database, Session &session,
+            Request &request, std::ostream &fcout)
+    {
+        PlanItem c = BusinessLogic::planitem_edit(database, session, request);
+        fcout << "\t\"data\": {\n";
+        c.to_json(fcout);
+        fcout << "},";
         return 200;
     }
 
@@ -173,10 +169,14 @@ namespace WebService
                 status = items(database, session, request, fcout);
             else if (query == "webservice/item_add")
                 status = item_add(database, session, request, fcout);
+            else if (query == "webservice/item_edit")
+                status = item_edit(database, session, request, fcout);
             else if (query == "webservice/planitems")
                 status = planitems(database, session, request, fcout);
             else if (query == "webservice/planitem_add")
                 status = planitem_add(database, session, request, fcout);
+            else if (query == "webservice/planitem_edit")
+                status = planitem_edit(database, session, request, fcout);
             else if (query == "webservice/categories")
                 status = categories(database, session, request, fcout);
             else if (query == "webservice/category_add")

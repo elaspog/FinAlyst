@@ -35,101 +35,189 @@ namespace BusinessLogic
         {}
     };
 
-    void item_add(Database &database, Session &session, Request &request)
+    Item item_add(Database &database, Session &session, Request &request)
     {
-        if (request.type() == RequestType::Post)
-        {
-            std::string amountstr = request.post("amount");
-            uint64_t amount;
-            uint64_t categoryid;
-            if (amountstr.empty() || !parse_unsigned(amountstr, amount))
-                throw MalformedRequest("Invalid amount!");
-            if (!parse_unsigned(request.post("categoryid"), categoryid))
-                throw MalformedRequest("Invalid categoryid!");
-            Category category = Category::find(database, categoryid);
-            if (!category.valid())
-                throw MalformedRequest("Category does not exits!");
-            if (category.user().id() != session.user().id())
-            {
-                // TODO: security alert
-                throw MalformedRequest(
-                        "Categoy belongs to a different user!");
-            }
-            Item n(database, session.user(), category,
-                    amount, request.post("description"));
-            n.save();
-        } else {
+        if (request.type() != RequestType::Post)
             throw MethodNotAllowed("item_add only accepts POST request");
+        std::string amountstr = request.post("amount");
+        uint64_t amount;
+        uint64_t categoryid;
+        if (amountstr.empty() || !parse_unsigned(amountstr, amount))
+            throw MalformedRequest("Invalid amount!");
+        if (!parse_unsigned(request.post("categoryid"), categoryid))
+            throw MalformedRequest("Invalid categoryid!");
+        Category category = Category::find(database, categoryid);
+        if (!category.valid())
+            throw MalformedRequest("Category does not exits!");
+        if (category.user().id() != session.user().id())
+        {
+            // TODO: security alert
+            throw MalformedRequest(
+                    "Categoy belongs to a different user!");
         }
+        Item n(database, session.user(), category,
+                amount, request.post("description"));
+        n.save();
+        return n;
     }
 
-    void planitem_add(Database &database, Session &session, Request &request)
+    PlanItem planitem_add(Database &database, Session &session, Request &request)
     {
-        if (request.type() == RequestType::Post)
+        if (request.type() != RequestType::Post)
+        throw MethodNotAllowed("planitem_add only accepts POST request");
+        std::string amountstr = request.post("amount");
+        uint64_t amount;
+        uint64_t categoryid;
+        if (amountstr.empty() || !parse_unsigned(amountstr, amount))
+            throw MalformedRequest("Invalid amount!");
+        if (!parse_unsigned(request.post("categoryid"), categoryid))
+            throw MalformedRequest("Invalid categoryid!");
+        Category category = Category::find(database, categoryid);
+        if (!category.valid())
+            throw MalformedRequest("Category does not exits!");
+        if (category.user().id() != session.user().id())
         {
-            std::string amountstr = request.post("amount");
-            uint64_t amount;
-            uint64_t categoryid;
-            if (amountstr.empty() || !parse_unsigned(amountstr, amount))
-                throw MalformedRequest("Invalid amount!");
-            if (!parse_unsigned(request.post("categoryid"), categoryid))
-                throw MalformedRequest("Invalid categoryid!");
-            Category category = Category::find(database, categoryid);
-            if (!category.valid())
-                throw MalformedRequest("Category does not exits!");
-            if (category.user().id() != session.user().id())
-            {
-                // TODO: security alert
-                throw MalformedRequest(
-                        "Categoy belongs to a different user!");
-            }
-            PlanItem n(database, session.user(), category,
-                    amount, request.post("description"));
-            n.save();
-        } else {
-            throw MethodNotAllowed("planitem_add only accepts POST request");
+            // TODO: security alert
+            throw MalformedRequest(
+                    "Categoy belongs to a different user!");
         }
+        PlanItem n(database, session.user(), category,
+                amount, request.post("description"));
+        n.save();
+        return n;
     }
 
-    void category_add(Database &database, Session &session, Request &request)
+    Category category_add(Database &database, Session &session, Request &request)
     {
-        if (request.type() == RequestType::Post)
-        {
-            std::string name = request.post("name");
-            if (name.empty())
-                throw BusinessLogic::MalformedRequest("Category name can't be empty!!");
-            Category n(database, session.user(),
-                    name, request.post("description"));
-            n.save();
-        } else {
+        if (request.type() != RequestType::Post)
             throw MethodNotAllowed("category_add only accepts POST request");
-        }
+        std::string name = request.post("name");
+        if (name.empty())
+            throw BusinessLogic::MalformedRequest("Category name can't be empty!!");
+        Category n(database, session.user(),
+                name, request.post("description"));
+        n.save();
+        return n;
     }
 
-    void category_edit(Database &database, Session &session, Request &request)
+    Category category_edit(Database &database, Session &session, Request &request)
     {
-        if (request.type() == RequestType::Post)
+        if (request.type() != RequestType::Post)
+            throw MethodNotAllowed("category_add only accepts POST request");
+        std::string id_str = request.post("categoryid");
+        uint64_t categoryid;
+        if (id_str.empty() || !parse_unsigned(id_str, categoryid))
+            throw MalformedRequest("Invalid or missing categoryid!");
+        
+        Category c = Category::find(database, categoryid);
+        if (!c.valid())
+            throw MalformedRequest("Category does not exists!");
+        if (c.user().id() != session.user().id())
+            throw AccessDenied("Can't change category, "
+                    "it belongs to different user!");
+
+        std::string name;
+        if (request.post("name", name))
         {
-            std::string id_str = request.post("categoryid");
-            uint64_t categoryid;
-            if (id_str.empty() || !parse_unsigned(id_str, categoryid))
-                throw MalformedRequest("Invalid or missing categoryid!");
-            std::string name = request.post("name");
             if (name.empty())
                 throw MalformedRequest("Category name can't be empty!");
-            Category c = Category::find(database, categoryid);
-            if (!c.valid())
-                throw MalformedRequest("Category does not exists!");
-            if (c.user().id() != session.user().id())
-                throw AccessDenied("Can't change category, "
-                        "it belongs to different user!");
-            LOG_DEBUG("Name: %s desc: %s", c.name().c_str(), c.description().c_str());
             c.name(name);
-            c.description(request.post("description"));
-            c.save();
-        } else {
-            throw MethodNotAllowed("category_add only accepts POST request");
         }
+       
+        std::string description;
+        if (request.post("description", description))
+            c.description(description);
+        c.save();
+
+        return c;
+    }
+
+    Item item_edit(Database &database, Session &session, Request &request)
+    {
+        if (request.type() != RequestType::Post)
+            throw MethodNotAllowed("item_edit only accepts POST request");
+        std::string id_str = request.post("itemid");
+        uint64_t itemid;
+        if (id_str.empty() || !parse_unsigned(id_str, itemid))
+            throw MalformedRequest("Invalid or missing itemid!");
+        Item c = Item::find(database, itemid);
+        if (!c.valid())
+            throw MalformedRequest("Item does not exists!");
+        if (c.user().id() != session.user().id())
+            throw AccessDenied("Can't change item, "
+                    "it belongs to different user!");
+
+        std::string amount_str;
+        if (request.post("amount", amount_str))
+        {
+            uint64_t amount;
+            if (amount_str.empty() || !parse_unsigned(amount_str, amount))
+                throw MalformedRequest("Amount is not a number!");
+            c.amount(amount);
+        }
+
+        std::string categoryid_str;
+        if (request.post("categoryid", categoryid_str))
+        {
+            uint64_t categoryid;
+            if (id_str.empty() || !parse_unsigned(id_str, categoryid))
+                throw MalformedRequest("Invalid categoryid!");
+            Category category = Category::find(database, categoryid);
+            if (!category.valid())
+                throw MalformedRequest("Category does not exists!");
+            c.category(category);
+        }
+
+        std::string description;
+        if (request.post("description", description))
+            c.description(description);
+
+        c.save();
+        return c;
+    }
+
+    PlanItem planitem_edit(Database &database, Session &session, Request &request)
+    {
+        if (request.type() != RequestType::Post)
+            throw MethodNotAllowed("planitem_edit only accepts POST request");
+        std::string id_str = request.post("planitemid");
+        uint64_t planitemid;
+        if (id_str.empty() || !parse_unsigned(id_str, planitemid))
+            throw MalformedRequest("Invalid or missing planitemid!");
+        PlanItem c = PlanItem::find(database, planitemid);
+        if (!c.valid())
+            throw MalformedRequest("Planitem does not exists!");
+        if (c.user().id() != session.user().id())
+                throw AccessDenied("Can't change planitem, "
+                        "it belongs to different user!");
+
+        std::string amount_str;
+        if (request.post("amount", amount_str))
+        {
+            uint64_t amount;
+            if (amount_str.empty() || !parse_unsigned(amount_str, amount))
+                throw MalformedRequest("Amount is not a number!");
+            c.amount(amount);
+        }
+
+        std::string categoryid_str;
+        if (request.post("categoryid", categoryid_str))
+        {
+            uint64_t categoryid;
+            if (id_str.empty() || !parse_unsigned(id_str, categoryid))
+                throw MalformedRequest("Invalid categoryid!");
+            Category category = Category::find(database, categoryid);
+            if (!category.valid())
+                throw MalformedRequest("Category does not exists!");
+            c.category(category);
+        }
+
+        std::string description;
+        if (request.post("description", description))
+            c.description(description);
+
+        c.save();
+        return c;
     }
 
     void category_destroy(Database &database, Session &session, Request &request)

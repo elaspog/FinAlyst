@@ -64,19 +64,42 @@ public:
         return "";
     }
 
-    std::string post(std::string const &key)
+    bool post(std::string const &key, std::string &value)
     {
         need_post();
         auto it = _post.find(key);
-        if (_post.end() != it) return it->second;
-        return "";
+        if (_post.end() != it)
+        {
+            value = it->second;
+            return true;
+        }
+        return false;
+    }
+
+    std::string post(std::string const &key)
+    {
+        std::string value;
+        post(key, value);
+        return value;
+    }
+
+    bool get(std::string const &key, std::string &value) const
+    {
+        auto it = _get.find(key);
+        if (_get.end() != it)
+        {
+            value = it->second;
+            return true;
+        }
+        value = "";
+        return false;
     }
 
     std::string get(std::string const &key) const
     {
-        auto it = _get.find(key);
-        if (_get.end() != it) return it->second;
-        return "";
+        std::string value;
+        get(key, value);
+        return value;
     }
 
     void each_env(OptsCb cb) const

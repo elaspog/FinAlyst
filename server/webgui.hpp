@@ -49,9 +49,10 @@ namespace WebGUI
             fcout << "<tr>";
             fcout << "<td>" << item.amount() << "</td>";
             fcout << "<td>" << item.description() << "</td>";
-            fcout << "<td><form method=\"POST\" action=\"?q=item_destroy\">";
-                fcout << "<input type=\"hidden\" name=\"itemid\" value=\"" << item.id() << "\">";
-                fcout << "<input type=\"submit\" value=\"Delete\"></form></td>";
+            fcout <<   "<td>";
+            fcout <<     "<a href=\"?q=item_edit&itemid=" << item.id() << "\">Edit</a>";
+            fcout <<     "<a rel=\"nofollow\" href=\"?q=item_destroy_conform&itemid=" << item.id() << "\">Delete</a>";
+            fcout <<   "</td>";
             fcout << "</tr>";
         }
         fcout << "</table>";
@@ -124,9 +125,10 @@ namespace WebGUI
             fcout << "<tr>";
             fcout << "<td>" << item.amount() << "</td>";
             fcout << "<td>" << item.description() << "</td>";
-            fcout << "<td><form method=\"POST\" action=\"?q=planitem_destroy\">";
-                fcout << "<input type=\"hidden\" name=\"planitemid\" value=\"" << item.id() << "\">";
-                fcout << "<input type=\"submit\" value=\"Delete\"></form></td>";
+            fcout <<   "<td>";
+            fcout <<     "<a href=\"?q=planitem_edit&planitemid=" << item.id() << "\">Edit</a>";
+            fcout <<     "<a rel=\"nofollow\" href=\"?q=planitem_destroy_conform&planitemid=" << item.id() << "\">Delete</a>";
+            fcout <<   "</td>";
             fcout << "</tr>";
         }
         fcout << "</table>";
@@ -214,6 +216,76 @@ namespace WebGUI
         fcout << "</form>";
     }
 
+    void item_edit(Database &database, Session &session,
+            Request &request, std::ostream &fcout)
+    {
+        if (request.type() == RequestType::Post)
+        {
+            BusinessLogic::item_edit(database, session, request);
+            fcout << "Location: ?q=item\r\n";
+            fcout << "\r\n\r\n";
+            return;
+        }
+        uint64_t itemid;
+        if (!parse_unsigned(request.get("itemid"), itemid))
+        {
+            // TODO
+            throw std::logic_error("itemid not a number");
+        }
+        Item item = Item::find(database, itemid);
+        if (!item.valid())
+        {
+            // TODO
+            throw std::logic_error("item does not exists");
+        }
+        fcout << "<br />";
+        fcout << "<form name=\"item_edit_form\" method=\"post\" action=\"?q=item_edit\">";
+        fcout << "<input type=\"hidden\" name=\"itemid\" value=\""
+            << item.id() <<  "\">";
+        fcout << "Amount: <input name=\"amount\" value=\""
+            << item.amount() << "\">";
+        fcout << "Description: <textarea rows=\"3\" name=\"description\">";
+            htmlspecialchars(item.description(), fcout);
+            fcout << "</textarea>";
+        fcout << "<input type=\"submit\" value=\"Save\">";
+        fcout << "</form>";
+    }
+
+    void planitem_edit(Database &database, Session &session,
+            Request &request, std::ostream &fcout)
+    {
+        if (request.type() == RequestType::Post)
+        {
+            BusinessLogic::planitem_edit(database, session, request);
+            fcout << "Location: ?q=plan\r\n";
+            fcout << "\r\n\r\n";
+            return;
+        }
+        uint64_t planitemid;
+        if (!parse_unsigned(request.get("planitemid"), planitemid))
+        {
+            // TODO
+            throw std::logic_error("planitemid not a number");
+        }
+        PlanItem planitem = PlanItem::find(database, planitemid);
+        if (!planitem.valid())
+        {
+            // TODO
+            throw std::logic_error("planitem does not exists");
+        }
+        fcout << "<br />";
+        fcout << "<form name=\"planitem_edit_form\" method=\"post\" action=\"?q=planitem_edit\">";
+        fcout << "<input type=\"hidden\" name=\"planitemid\" value=\""
+            << planitem.id() <<  "\">";
+        fcout << "Amount: <input name=\"amount\" value=\""
+            << planitem.amount() << "\">";
+        fcout << "Description: <textarea rows=\"3\" name=\"description\">";
+            htmlspecialchars(planitem.description(), fcout);
+            fcout << "</textarea>";
+        fcout << "<input type=\"submit\" value=\"Save\">";
+        fcout << "</form>";
+    }
+
     void category_destroy_conform(Request &request, std::ostream &fcout)
     {
         fcout << "<form method=\"POST\" action=\"?q=category_destroy\">";
@@ -221,6 +293,28 @@ namespace WebGUI
             fcout << "<input type=\"hidden\" name=\"categoryid\" value=\""
                 << request.get("categoryid") << "\">";
             fcout << "<a href=\"?q=category\">Back</a>";
+            fcout << "<input type=\"submit\" value=\"Delete\">";
+        fcout << "</form>";
+    }
+
+    void item_destroy_conform(Request &request, std::ostream &fcout)
+    {
+        fcout << "<form method=\"POST\" action=\"?q=item_destroy\">";
+            fcout << "Are you sure you want to delete?";
+            fcout << "<input type=\"hidden\" name=\"itemid\" value=\""
+                << request.get("itemid") << "\">";
+            fcout << "<a href=\"?q=item\">Back</a>";
+            fcout << "<input type=\"submit\" value=\"Delete\">";
+        fcout << "</form>";
+    }
+
+    void planitem_destroy_conform(Request &request, std::ostream &fcout)
+    {
+        fcout << "<form method=\"POST\" action=\"?q=planitem_destroy\">";
+            fcout << "Are you sure you want to delete?";
+            fcout << "<input type=\"hidden\" name=\"planitemid\" value=\""
+                << request.get("planitemid") << "\">";
+            fcout << "<a href=\"?q=plan\">Back</a>";
             fcout << "<input type=\"submit\" value=\"Delete\">";
         fcout << "</form>";
     }
@@ -299,10 +393,18 @@ namespace WebGUI
             item_page(database, session, request, fcout);
         else if (request.query() == "item_add")
             item_add(database, session, request, fcout);
+        else if (request.query() == "item_edit")
+            item_edit(database, session, request, fcout);
+        else if (request.query() == "item_destroy_conform")
+            item_destroy_conform(request, fcout);
         else if (request.query() == "plan")
             plan_page(database, session, request, fcout);
         else if (request.query() == "planitem_add")
             planitem_add(database, session, request, fcout);
+        else if (request.query() == "planitem_edit")
+            planitem_edit(database, session, request, fcout);
+        else if (request.query() == "planitem_destroy_conform")
+            planitem_destroy_conform(request, fcout);
         else if (request.query() == "category")
             category_page(database, session, request, fcout);
         else if (request.query() == "category_add")
