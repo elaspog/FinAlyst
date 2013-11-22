@@ -1,12 +1,20 @@
-all: server assets/webserviceapi.html assets/changelog.html csharpexamples
+CXXFLAGS=-Wall -Wextra -std=gnu++11 -O0 -mtune=native -march=native
+LIBS=-lmysqlclient -lfcgi++ -lgcrypt
+
+apps=server
+units=server session session_mem rand logger request template_common utils
+
+all: $(apps) assets/webserviceapi.html assets/changelog.html csharpexamples
 
 csharpexamples: clienttest.exe stresstest.exe
 
-%.o: %.cpp *.hpp
-	$(CXX) -Wall -Wextra -std=gnu++11 -O0 -mtune=native -march=native -c -g $< -o $@
+#%.o: %.cpp *.hpp
+#	$(CXX) -Wall -Wextra -std=gnu++11 -O0 -mtune=native -march=native -c -g $< -o $@
 
-server: server.o session.o session_mem.o rand.o logger.o request.o template_common.o utils.o
-	$(CXX) -lmysqlclient -lfcgi++ -lgcrypt $+ -o $@
+$(apps): %: %.o $(units:=.o)
+	$(CXX) $(CXXFLAGS) $(LIBS) $^ -o $@
+
+-include $(units:=.d) $(apps:=.d)
 
 %.exe: %.cs
 	dmcs -debug -r:System.Runtime.Serialization $<
@@ -17,6 +25,6 @@ server: server.o session.o session_mem.o rand.o logger.o request.o template_comm
 	echo '</html>' >> $@
 
 clean:
-	rm -f server *.o clienttest.exe *.mdb
+	rm -f server *.o clienttest.exe stresstest.exe *.mdb
 
-.PHONY: clean csharpexamples
+.PHONY: all clean csharpexamples

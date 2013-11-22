@@ -6,7 +6,7 @@ using System.Text;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 
-class FinAliyst
+class FinAlyst
 {
 
     [DataContract]

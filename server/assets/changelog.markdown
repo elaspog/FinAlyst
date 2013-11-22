@@ -3,6 +3,7 @@
 ## 2013. 11. 22. ##
 
 * Session management refactoring
+* Makefile improvements
 
 ## 2013. 11. 19. ##
 
