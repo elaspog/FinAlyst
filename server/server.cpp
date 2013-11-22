@@ -2,6 +2,7 @@
 #include <string>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <map>
 #include <stdexcept>
 #include <cstdio>
@@ -10,7 +11,7 @@
 
 #include "logger.hpp"
 #include "database.hpp"
-#include "session.hpp"
+#include "session_mem.hpp"
 #include "user.hpp"
 #include "rand.hpp"
 #include "request.hpp"
@@ -23,7 +24,6 @@ using namespace std;
 
 bool service_down = false;
 std::string error_message;
-SessionManager sessionman;
 
 void parse_config(std::string const &filename, OptsMap &config)
 {
@@ -64,6 +64,8 @@ void servicedown_page(OptsMap const &config, ostream &fcout)
 }
 
 int main(void) {
+    unique_ptr<SessionManager> sessionman =
+        unique_ptr<SessionManager>(new MemorySessionManager());
     OptsMap config;
     FCGX_Request fcgi_request;
 
@@ -107,7 +109,7 @@ int main(void) {
             try
             {
                 Request request(fcgi_request);
-                Session *session = NULL;
+                Session session;
                 // Parse request
                 std::string query = request.query();
                 // Search for session cookie
@@ -120,8 +122,7 @@ int main(void) {
                         sessionid = request.post("sessionid");
                     }
                 }
-                session = sessionman.session(sessionid);
-                if (session != NULL) session->update_user();
+                sessionman->load_session(sessionid, session);
 
                 if (query.substr(0, sizeof("webservice/")-1) == "webservice/")
                 {
@@ -134,10 +135,10 @@ int main(void) {
                         webservice_logout(sessionman, session, fcout);
                     } else
                     {
-                        if (session != NULL)
+                        if (session.valid())
                         {
                             WebService::handle_request(
-                                    database, *session, request, fcout);
+                                    database, session, request, fcout);
                         } else
                         {
                             html_content(fcout);
@@ -151,20 +152,20 @@ int main(void) {
                 {
                     if (query == "logout")
                             logout_page(sessionman, session, fcout);
-                    else if (query.empty() || query == "login" || session == NULL)
+                    else if (query.empty() || query == "login" || !session.valid())
                     {
                         login_page(config, database, sessionman, session,
                                 request, fcout);
                     } else 
                     {
-                        if (session->user().administrator())
+                        if (session.user().administrator())
                             WebAdmin::handle_request(config,
-                                    database, *session,
+                                    database, session,
                                     request, fcout, fcin);
                         else
                         {
                             WebGUI::handle_request(config,
-                                    database, *session,
+                                    database, session,
                                     request, fcout);
                         }
                     }

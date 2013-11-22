@@ -1,5 +1,9 @@
 # FinAlyst changelog #
 
+## 2013. 11. 22. ##
+
+* Session management refactoring
+
 ## 2013. 11. 19. ##
 
 * Added item, planitem change support

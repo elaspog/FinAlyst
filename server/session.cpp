@@ -4,7 +4,7 @@ using namespace std;
 
 static const size_t sessionid_rand_block_size = 64*sizeof(randgen_ret_type);
 
-string SessionManager::generate_sessionid(User &user)
+string SessionManager::generate_new_sessionid(User &user)
 {
     string username = user.name();
     unsigned char data[username.size()+sizeof(time_t)+sessionid_rand_block_size];
@@ -70,7 +70,7 @@ static bool authenticate(Database &database, OptsMap const &config,
 }
 
 void webservice_login(Database &database, 
-        SessionManager &sessionman,
+        std::unique_ptr<SessionManager> &sessionman,
         Request &request, std::ostream &fcout)
 {
     html_content(fcout);
@@ -83,7 +83,7 @@ void webservice_login(Database &database,
             fcout << "\t\"sucess\": true,\n";
             fcout << "\t\"status\": 200,\n";
             fcout << "\t\"data\": null,\n";
-            fcout << "\t\"sessionid\": \"" << sessionman.new_session(user)
+            fcout << "\t\"sessionid\": \"" << sessionman->new_session(user)
                 << "\"" << endl;
         } else
         {
@@ -100,14 +100,14 @@ void webservice_login(Database &database,
     fcout << "}";
 }
 
-void webservice_logout(SessionManager &sessionman, Session *session,
-        std::ostream &fcout)
+void webservice_logout(std::unique_ptr<SessionManager> &sessionman,
+        Session &session, std::ostream &fcout)
 {
     html_content(fcout);
     fcout << "{\n";
-    if (session != NULL)
+    if (session.valid())
     {
-        sessionman.delete_session(session->sessionid());
+        sessionman->delete_session(session);
         fcout << "\t\"sucess\": true,\n";
         fcout << "\t\"status\": 200,\n";
         fcout << "\t\"data\": null\n";
@@ -121,11 +121,11 @@ void webservice_logout(SessionManager &sessionman, Session *session,
 }
 
 void login_page(OptsMap const &config, Database &database, 
-        SessionManager &sessionman, Session *session,
-        Request &request, std::ostream &fcout)
+        std::unique_ptr<SessionManager> &sessionman,
+        Session &session, Request &request, std::ostream &fcout)
 {
     bool login_failed = false;
-    if (session == NULL)
+    if (!session.valid())
     {
         std::string username, password;
         if (get_username_password(request, username, password))
@@ -134,7 +134,7 @@ void login_page(OptsMap const &config, Database &database,
             if (authenticate(database, config, username, password, user))
             {
                 // Create a new session
-                std::string sessionid = sessionman.new_session(user);
+                std::string sessionid = sessionman->new_session(user);
                 // Set cookie and redirect to main page
                 fcout << "Location: ?q=main\r\n";
                 fcout << "Set-Cookie: sessionid=" << sessionid << "\r\n";
@@ -163,10 +163,10 @@ void login_page(OptsMap const &config, Database &database,
     footer(fcout);
 }
 
-void logout_page(SessionManager &sessionman, Session *session,
-        std::ostream &fcout)
+void logout_page(std::unique_ptr<SessionManager> &sessionman,
+        Session &session, std::ostream &fcout)
 {
-    if (session != NULL) sessionman.delete_session(session->sessionid());
+    if (session.valid()) sessionman->delete_session(session);
     fcout << "Location: ?q=login\r\n";
     fcout << "Set-Cookie: sessionid=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     fcout << "\r\n\r\n";

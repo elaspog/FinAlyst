@@ -1,12 +1,14 @@
-all: server clienttest.exe assets/webserviceapi.html assets/changelog.html
+all: server assets/webserviceapi.html assets/changelog.html csharpexamples
+
+csharpexamples: clienttest.exe stresstest.exe
 
 %.o: %.cpp *.hpp
 	$(CXX) -Wall -Wextra -std=gnu++11 -O0 -mtune=native -march=native -c -g $< -o $@
 
-server: server.o rand.o logger.o session.o request.o template_common.o utils.o
+server: server.o session.o session_mem.o rand.o logger.o request.o template_common.o utils.o
 	$(CXX) -lmysqlclient -lfcgi++ -lgcrypt $+ -o $@
 
-clienttest.exe: clienttest.cs
+%.exe: %.cs
 	dmcs -debug -r:System.Runtime.Serialization $<
 
 %.html: %.markdown
@@ -16,3 +18,5 @@ clienttest.exe: clienttest.cs
 
 clean:
 	rm -f server *.o clienttest.exe *.mdb
+
+.PHONY: clean csharpexamples
