@@ -64,7 +64,6 @@ public:
         database.execute(params,
                 "DELETE FROM `categories` WHERE id = ? and userid = ?");
         uint64_t affected = database.affected_rows();
-        LOG_DEBUG("Affected: %d", affected);
         log_assert(affected <= 1);
         if (affected == 0)
             throw RowDoesNotExists("Can't destroy category, user does not "

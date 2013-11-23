@@ -65,16 +65,24 @@ void servicedown_page(OptsMap const &config, ostream &fcout)
 }
 
 int main(void) {
+    // Initilaize gcrypt
+    if (!gcry_check_version(GCRYPT_VERSION))
+    {
+        fprintf(stderr, "libgcrypt version mismatch\n");
+        exit(1);
+    }
+    // Initialize gcrypt secure memory
+    gcry_control (GCRYCTL_SUSPEND_SECMEM_WARN);
+    gcry_control (GCRYCTL_INIT_SECMEM, 16384, 0);
+    gcry_control (GCRYCTL_RESUME_SECMEM_WARN);
+    // End gcrypt initialization
+    gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
+
     OptsMap config;
     FCGX_Request fcgi_request;
 
     FCGX_Init();
     FCGX_InitRequest(&fcgi_request, 0, 0);
-
-    // Setup logging
-    char const *log_file = getenv("LOG_FILE");
-    if (log_file == NULL) log_file = "/var/log/finance.log";
-    log_target_file(log_file);
 
     // Initialize application
     char const *config_file = getenv("CONFIG_FILE");
@@ -83,6 +91,13 @@ int main(void) {
         service_down = true;
         error_message = "CONFIG_FILE environment variable undefined";
     }
+
+    // Setup logging
+    std::string log_file = config["logfile"];
+    if (log_file.empty()) log_file = "/var/log/finance.log";
+    if (config["logger"] == "file") log_target_file(log_file);
+    if (config["logger"] == "syslog" || config["logger"].empty())
+        log_target_syslog("finalyst");
 
     Database database(
             config["database-server"], config["database-user"],
@@ -126,7 +141,7 @@ int main(void) {
                     }
                 }
                 sessionman->load_session(sessionid, session);
-                LOG_INFO("[%s] Got request %s from %s user %s",
+                LOG_MESSAGE_INFO("[%s] Got request %s from %s user %s",
                         request.env("REQUEST_METHOD").c_str(),
                         request.env("REQUEST_URI").c_str(),
                         request.env("REMOTE_ADDR").c_str(),
@@ -192,5 +207,6 @@ int main(void) {
         
         FCGX_Finish_r(&fcgi_request);
     }
+    log_close();
     return 0;
 }

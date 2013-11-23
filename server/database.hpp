@@ -117,7 +117,6 @@ template <size_t Size>
 MYSQL_BIND mbind(FixedString<Size> const &str, unsigned long &size)
 {
     size = str.length();
-    LOG_DEBUG("Lemngth: %d", size);
     MYSQL_BIND bind;
     memset(&bind, 0, sizeof(bind));
     bind.buffer_type = MYSQL_TYPE_STRING;
@@ -274,7 +273,6 @@ public:
         MYSQL_BIND results[std::tuple_size<Results>::value];
         if (std::tuple_size<Results>::value > 0)
         {
-            LOG_DEBUG("Results: %d", std::tuple_size<Results>::value);
             SetupBind<Results, std::tuple_size<Results>::value>::setup(
                     res_values,
                     res_size+std::tuple_size<Results>::value-1,
@@ -298,14 +296,12 @@ public:
             int error;
             while ((error = mysql_stmt_fetch (stmt)) == 0)
             {
-                LOG_DEBUG("Got result");
                 /*for (unsigned i = 0; i<std::tuple_size<Results>::value;++i)
                     LOG_DEBUG("%d got size: %d", i, res_size[i]);*/
                 cb(res_values);
             }
             if (error != MYSQL_NO_DATA)
             {
-                LOG_DEBUG("fetch error: %d", error);
                 throw std::logic_error(
                         std::string("Can't fetch: ")
                         +mysql_stmt_error(stmt));

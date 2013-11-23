@@ -16,18 +16,20 @@ enum class LogLevel
 };
 
 void log_target_file(std::string const &filename);
+void log_target_syslog(std::string const &application_name);
+void log_close();
 void log_message(LogLevel level, const char * format, ...);
 
 
-#define LOG_WARN(...) log_message(LogLevel::Warning, __VA_ARGS__)
-#define LOG_INFO(...) log_message(LogLevel::Informational, __VA_ARGS__)
-#define LOG_DEBUG(...) log_message(LogLevel::Debug, __VA_ARGS__)
+#define LOG_MESSAGE_WARN(...) log_message(LogLevel::Warning, __VA_ARGS__)
+#define LOG_MESSAGE_INFO(...) log_message(LogLevel::Informational, __VA_ARGS__)
+#define LOG_MESSAGE_DEBUG(...) log_message(LogLevel::Debug, __VA_ARGS__)
 
 #define log_assert(expr)                        \
     do {                                        \
         if (!(expr))                            \
         {                                       \
-            LOG_DEBUG(__FILE__ ":%d assertation falied: " #expr, __LINE__);    \
+            LOG_MESSAGE_DEBUG(__FILE__ ":%d assertation falied: " #expr, __LINE__);    \
             abort();                            \
         }                                       \
     } while (false)
@@ -38,7 +40,7 @@ void log_message(LogLevel level, const char * format, ...);
         auto e2 = expr2;                        \
         if (e1 != e2)                           \
         {                                       \
-            LOG_DEBUG(__FILE__ ":%d assertation falied: " #expr1 " != " #expr2, __LINE__);    \
+            LOG_MESSAGE_DEBUG(__FILE__ ":%d assertation falied: " #expr1 " != " #expr2, __LINE__);    \
             abort();                            \
         }                                       \
     } while (false)

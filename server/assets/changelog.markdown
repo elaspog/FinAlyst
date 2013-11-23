@@ -1,5 +1,11 @@
 # FinAlyst changelog #
 
+## 2013. 11. 23. ##
+
+* Added syslog support
+* Proper gcrypt initialization
+* Removed useless log messages
+
 ## 2013. 11. 22. ##
 
 * Session management refactoring

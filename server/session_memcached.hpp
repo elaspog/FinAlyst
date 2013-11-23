@@ -76,7 +76,7 @@ public:
                 userid = std::stoi(session.get("userid"));
             } catch (std::exception const &ex)
             {
-                LOG_WARN("Invalid userid in session data");
+                LOG_MESSAGE_WARN("Invalid userid in session data");
                 return false;
             }
             session.set(User::find(database(), userid), sessionid);
