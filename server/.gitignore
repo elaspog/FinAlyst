@@ -1,4 +1,5 @@
 *.o
+*.d
 *.mdb
 *.exe
 *.swp

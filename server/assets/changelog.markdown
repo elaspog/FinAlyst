@@ -4,6 +4,7 @@
 
 * Session management refactoring
 * Makefile improvements
+* SessionManager supports memcached
 
 ## 2013. 11. 19. ##
 

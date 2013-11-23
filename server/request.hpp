@@ -1,20 +1,15 @@
 #ifndef REQUEST_HPP_INCLUDED
 #define REQUEST_HPP_INCLUDED
 
-#include <functional>
 #include <string>
-#include <map>
 #include <fcgio.h>
-#include <stdexcept>
 #include <sstream>
+#include <stdexcept>
 #include <cstring>
 
-typedef std::map<std::string, std::string> OptsMap;
-typedef std::function<void (std::string const&, std::string const&)> OptsCb;
+#include "utils.hpp"
 
 enum class RequestType { Unknown, Get, Post };
-
-void parse_pairs(std::istream &urldata, char pair_delimiter, std::map<std::string, std::string> &pairs);
 
 class Request
 {

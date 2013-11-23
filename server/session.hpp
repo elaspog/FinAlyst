@@ -12,16 +12,27 @@
 struct Session
 {
 public:
-    Session() : _valid(false) {}
+    Session() {}
     Session(User const &user, std::string const &sessionid) :
-        _valid(true), _user(user), _sessionid(sessionid)
+        _user(user), _sessionid(sessionid)
     {}
 
+    void set(User const &user, std::string const &sessionid)
+    {
+        log_assert(!valid()); // TODO: report securoty problem
+        if (user.valid())
+        {
+            _sessionid = sessionid;
+            _user = user;
+        }
+    }
+
     User const& user() const { return _user; }
+    User& user() { return _user; }
 
     std::string const& sessionid() const { return _sessionid; }
 
-    bool valid()
+    bool valid() const
     {
         return !_sessionid.empty();
     }
@@ -31,8 +42,6 @@ public:
         log_assert(_user.valid());
         _user = User::find(_user.database(), _user.id());
     }
-
-    bool valid() const { return _valid; }
 
     std::string get(std::string const &key) const
     {
@@ -47,9 +56,9 @@ public:
     }
 
     OptsMap const& data() const { return _data; }
+    OptsMap& data() { return _data; }
 
 private:
-    bool _valid;
     User _user;
     std::string _sessionid;
 
@@ -59,11 +68,22 @@ private:
 class SessionManager
 {
 public:
+    SessionManager(Database &database) :
+        _database(database), _session_timeout(60*60)
+    {}
+
+    unsigned session_timeout() { return _session_timeout; }
+    Database& database() { return _database; }
+
     virtual std::string new_session(User &user) = 0;
+    virtual void update_session(Session &session) { (void)session; };
     virtual void delete_session(Session &session) = 0;
     virtual bool load_session(std::string const &sessionid, Session &session) = 0;
 protected:
     static std::string generate_new_sessionid(User &user);
+private:
+    Database &_database;
+    unsigned _session_timeout;
 };
 
 void webservice_login(Database &database,

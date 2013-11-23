@@ -1,5 +1,5 @@
-CXXFLAGS=-Wall -Wextra -std=gnu++11 -O0 -mtune=native -march=native
-LIBS=-lmysqlclient -lfcgi++ -lgcrypt
+CXXFLAGS=-MD -Wall -Wextra -std=gnu++11 -O0 -mtune=native -march=native
+LIBS=-lmysqlclient -lfcgi++ -lgcrypt -lmemcached
 
 apps=server
 units=server session session_mem rand logger request template_common utils
@@ -7,9 +7,6 @@ units=server session session_mem rand logger request template_common utils
 all: $(apps) assets/webserviceapi.html assets/changelog.html csharpexamples
 
 csharpexamples: clienttest.exe stresstest.exe
-
-#%.o: %.cpp *.hpp
-#	$(CXX) -Wall -Wextra -std=gnu++11 -O0 -mtune=native -march=native -c -g $< -o $@
 
 $(apps): %: %.o $(units:=.o)
 	$(CXX) $(CXXFLAGS) $(LIBS) $^ -o $@
@@ -25,6 +22,6 @@ $(apps): %: %.o $(units:=.o)
 	echo '</html>' >> $@
 
 clean:
-	rm -f server *.o clienttest.exe stresstest.exe *.mdb
+	rm -f server *.o *.d clienttest.exe stresstest.exe *.mdb
 
 .PHONY: all clean csharpexamples

@@ -18,7 +18,10 @@ enum class LogLevel
 void log_target_file(std::string const &filename);
 void log_message(LogLevel level, const char * format, ...);
 
-#define LOG_DEBUG(...) log_message(LogLevel::Debug, __VA_ARGS__);
+
+#define LOG_WARN(...) log_message(LogLevel::Warning, __VA_ARGS__)
+#define LOG_INFO(...) log_message(LogLevel::Informational, __VA_ARGS__)
+#define LOG_DEBUG(...) log_message(LogLevel::Debug, __VA_ARGS__)
 
 #define log_assert(expr)                        \
     do {                                        \

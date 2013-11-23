@@ -12,6 +12,7 @@
 #include "logger.hpp"
 #include "database.hpp"
 #include "session_mem.hpp"
+#include "session_memcached.hpp"
 #include "user.hpp"
 #include "rand.hpp"
 #include "request.hpp"
@@ -64,8 +65,6 @@ void servicedown_page(OptsMap const &config, ostream &fcout)
 }
 
 int main(void) {
-    unique_ptr<SessionManager> sessionman =
-        unique_ptr<SessionManager>(new MemorySessionManager());
     OptsMap config;
     FCGX_Request fcgi_request;
 
@@ -93,6 +92,10 @@ int main(void) {
         service_down = true;
         error_message = database.error_message();
     }
+    
+    unique_ptr<SessionManager> sessionman =
+        //unique_ptr<SessionManager>(new MemorySessionManager());
+        unique_ptr<SessionManager>(new MemcachedSessionManager(database, "--SERVER=localhost:11211"));
 
     // Accept requests
     while (FCGX_Accept_r(&fcgi_request) == 0) {
@@ -123,6 +126,11 @@ int main(void) {
                     }
                 }
                 sessionman->load_session(sessionid, session);
+                LOG_INFO("[%s] Got request %s from %s user %s",
+                        request.env("REQUEST_METHOD").c_str(),
+                        request.env("REQUEST_URI").c_str(),
+                        request.env("REMOTE_ADDR").c_str(),
+                        session.user().name().c_str());
 
                 if (query.substr(0, sizeof("webservice/")-1) == "webservice/")
                 {
