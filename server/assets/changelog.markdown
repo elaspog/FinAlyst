@@ -1,5 +1,9 @@
 # FinAlyst changelog #
 
+## 2013. 11. 25. ##
+
+* Added weekly/monthly/yearly statistics on webservice interface
+
 ## 2013. 11. 23. ##
 
 * Added syslog support

@@ -448,3 +448,58 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitem_destroy
         "data": null
     }
 
+## Statistics
+
+### Weekly, montly, yearly statistics
+
+Calculate plan/expense balance for the specified category for every
+week/month or year in the specified timeframe. Balance **always** calculated for
+**single** year, granulation (week/month/year) can be specified in the request.
+By default balance statistics calculated in the current year, pass 1 (or more)
+in relative_year request agrument to get statistics about last year
+(or the previous years).
+
+
+**Request type:** HTTP GET
+
+**Request arguments:**
+
+|| **Key**       || **Type**     || **Description**                                                                ||
+|| categoryid    || integer      || plan item id                                                                   ||
+|| granulation   || string       || week/month/year                                                                ||
+|| relative_year || integer      || unsigned value, search limited this year (optional) (default: 0, current year) ||
+
+**Result data:**
+
+|| **Key**      || **Type**                  || **Description**       ||
+|| -            || array of Result Interval  || result interval       ||
+
+**Result Interval**
+
+|| **Key**      || **Type** || **Description**                       ||
+|| interval     || integer  || week of year/month/year               ||
+|| expensesum   || integer  || sum of expense in the interval        ||
+|| plannedsum   || integer  || sum of planned amount in the interval ||
+
+**Example URL:**
+http://myfinalyst/fcgi-bin/finalyst?q=webservice/balance_stats?categoryid=46
+
+**JSON example:**
+
+    {
+	"sucess": true,
+	"status": 200,
+	"data": [
+            {
+                    interval: 38,
+                    expensesum: 1000,
+                    plannedsum: 0
+            },
+            {
+                    interval: 40,
+                    expensesum: 1000,
+                    plannedsum: 1000
+            },
+	]
+    }
+

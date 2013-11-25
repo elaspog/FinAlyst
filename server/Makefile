@@ -2,7 +2,8 @@ CXXFLAGS=-MD -Wall -Wextra -std=gnu++11 -O0 -mtune=native -march=native
 LIBS=-lmysqlclient -lfcgi++ -lgcrypt -lmemcached
 
 apps=server
-units=server session session_mem rand logger request template_common utils
+units=server session session_mem rand logger request template_common utils \
+      bulogic
 
 all: $(apps) assets/webserviceapi.html assets/changelog.html csharpexamples
 

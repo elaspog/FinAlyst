@@ -158,6 +158,70 @@ public:
                 " FROM `categories` WHERE userid = ?");
     }
 
+    struct BalanceData
+    {
+        unsigned interval;
+        uint64_t expensesum;
+        uint64_t plannedsum;
+
+        BalanceData(unsigned interval, uint64_t expensesum, uint64_t plannedsum)
+            : interval(interval), expensesum(expensesum), plannedsum(plannedsum)
+        {}
+    };
+
+    enum class StatGranulation { weekly, monthly, yearly };
+
+    void balance_stats(std::vector<BalanceData> &data,
+            StatGranulation granulation, unsigned year = 0)
+    {
+        std::string gran;
+        switch (granulation)
+        {
+            case StatGranulation::weekly:
+                gran = "WEEK";
+                break;
+            case StatGranulation::monthly:
+                gran = "MONTH";
+                break;
+            case StatGranulation::yearly:
+                gran = "YEAR";
+                break;
+            break;
+            default:
+                LOG_MESSAGE_WARN("Invalid granulation. This should never happen!");
+                return;
+        }
+        typedef std::tuple<uint64_t, uint64_t, uint64_t> Results;
+        typedef std::tuple<uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t> Params;
+        Params params = std::make_tuple(_id, year, _id, year, _id, year, _id, year);
+        _database->query<Params, Results>(params,
+            "SELECT "+gran+"(items.`create`) AS `interval`, SUM(`items`.`amount`) AS `expensesum`, `planned`.`amount` AS `plannedsum` "
+                "FROM items "
+                "LEFT JOIN "
+                    "(SELECT SUM(`amount`) AS amount, `create` FROM planitems "
+                    "WHERE `categoryid` = ? AND year(`create`) = year(CURDATE()) - ? "
+                    "GROUP BY "+gran+"(planitems.`create`)) planned "
+                    "ON "+gran+"(items.`create`) = "+gran+"(planned.`create`)"
+                "WHERE items.`categoryid` = ? AND year(items.`create`) = year(CURDATE()) - ? "
+                "GROUP BY "+gran+"(items.`create`) "
+            " union "
+            "SELECT "+gran+"(planitems.`create`) AS `interval`, `expenses`.`amount` AS `expensesum`, SUM(`planitems`.`amount`) AS `plannedsum` "
+                "FROM planitems "
+                "LEFT JOIN "
+                    "(SELECT SUM(`amount`) AS amount, `create` FROM items "
+                    "WHERE items.`categoryid` = ? AND year(items.`create`) = year(CURDATE()) - ? "
+                    "GROUP BY "+gran+"(items.`create`)) expenses "
+                    "ON "+gran+"(planitems.`create`) = "+gran+"(expenses.`create`)"
+                "WHERE planitems.`categoryid` = ? AND year(planitems.`create`) = year(CURDATE()) - ? "
+                "GROUP BY "+gran+"(planitems.`create`) ",
+            [&data] (Results &res) {
+                data.push_back(BalanceData(
+                        std::get<0>(res),
+                        std::get<1>(res),
+                        std::get<2>(res)));
+            });
+    }
+   
     void to_json(std::ostream &output)
     {
         output << "\t\t{\n";

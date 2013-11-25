@@ -156,6 +156,27 @@ namespace WebService
         return 200;
     }
 
+    unsigned balance_stats(Database &database, Session &session,
+            Request &request, std::ostream &fcout)
+    {
+        std::vector<Category::BalanceData> data;
+        BusinessLogic::balance_stats(database, session, request, data);
+        fcout << "\t\"data\": [\n";
+        unsigned count = 0;
+        for (auto &p : data)
+        {
+            fcout << "\t{\n";
+            fcout << "\t\tinterval: " << p.interval << ",\n";
+            fcout << "\t\texpensesum: " << p.expensesum << ",\n";
+            fcout << "\t\tplannedsum: " << p.plannedsum << "\n";
+            fcout << "\t}";
+            if (count < data.size()) fcout << ",";
+            fcout << std::endl;
+        }
+        fcout << "\t],\n";
+        return 200;
+    }
+
     void handle_request(Database &database,
             Session &session,
             Request &request, std::ostream &fcout)
@@ -189,6 +210,8 @@ namespace WebService
                 status = item_destroy(database, session, request, fcout);
             else if (query == "webservice/planitem_destroy")
                 status = planitem_destroy(database, session, request, fcout);
+             else if (query == "webservice/balance_stats")
+                status = balance_stats(database, session, request, fcout);
             else
             {
                 fcout << "\t\"data\": null\n";
@@ -213,6 +236,12 @@ namespace WebService
         {
             fcout << "\t\"sucess\": false,\n";
             fcout << "\t\"status\": 400,\n";
+            fcout << "\t\"data\": null\n";
+        } catch (std::exception const &error)
+        {
+            LOG_MESSAGE_WARN("Webservice unknown error: %s", error.what());
+            fcout << "\t\"sucess\": false,\n";
+            fcout << "\t\"status\": 500,\n";
             fcout << "\t\"data\": null\n";
         } catch (...)
         {
