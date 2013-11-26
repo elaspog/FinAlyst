@@ -41,17 +41,18 @@ namespace WebGUI
         (void)request;
         fcout << "<a href=\"?q=item_add\">Add item</a>";
         fcout << "<h2>Item</h2>";
-        std::vector<Item> items;
-        Item::find_all(database, session.user(), items);
-        fcout << "<table><tr><th>Név</th><th>Megjegyzés</th><th></th></tr>";
-        for (auto &item : items)
+        std::vector<std::pair<Category, Item>> data;
+        Item::find_all_with_category(database, session.user(), data);
+        fcout << "<table><tr><th>Category</th><th>Amount</th><th>Description</th><th></th></tr>";
+        for (auto &item : data)
         {
             fcout << "<tr>";
-            fcout << "<td>" << item.amount() << "</td>";
-            fcout << "<td>" << item.description() << "</td>";
+            fcout << "<td>" << item.first.name() << "</td>";
+            fcout << "<td>" << item.second.amount() << "</td>";
+            fcout << "<td>" << item.second.description() << "</td>";
             fcout <<   "<td>";
-            fcout <<     "<a href=\"?q=item_edit&itemid=" << item.id() << "\">Edit</a>";
-            fcout <<     "<a rel=\"nofollow\" href=\"?q=item_destroy_conform&itemid=" << item.id() << "\">Delete</a>";
+            fcout <<     "<a href=\"?q=item_edit&itemid=" << item.second.id() << "\">Edit</a>";
+            fcout <<     "<a rel=\"nofollow\" href=\"?q=item_destroy_conform&itemid=" << item.second.id() << "\">Delete</a>";
             fcout <<   "</td>";
             fcout << "</tr>";
         }
@@ -117,17 +118,18 @@ namespace WebGUI
         (void)request;
         fcout << "<a href=\"?q=planitem_add\">Add plan item</a>";
         fcout << "<h2>Plan</h2>";
-        std::vector<PlanItem> plan;
-        PlanItem::find_all(database, session.user(), plan);
-        fcout << "<table><tr><th>Name</th><th>Description</th><th></th></tr>";
-        for (auto &item : plan)
+        std::vector<std::pair<Category, PlanItem>> data;
+        PlanItem::find_all_with_category(database, session.user(), data);
+        fcout << "<table><tr><th>Category</th><th>Amount</th><th>Description</th><th></th></tr>";
+        for (auto &item : data)
         {
             fcout << "<tr>";
-            fcout << "<td>" << item.amount() << "</td>";
-            fcout << "<td>" << item.description() << "</td>";
+            fcout << "<td>" << item.first.name() << "</td>";
+            fcout << "<td>" << item.second.amount() << "</td>";
+            fcout << "<td>" << item.second.description() << "</td>";
             fcout <<   "<td>";
-            fcout <<     "<a href=\"?q=planitem_edit&planitemid=" << item.id() << "\">Edit</a>";
-            fcout <<     "<a rel=\"nofollow\" href=\"?q=planitem_destroy_conform&planitemid=" << item.id() << "\">Delete</a>";
+            fcout <<     "<a href=\"?q=planitem_edit&itemid=" << item.second.id() << "\">Edit</a>";
+            fcout <<     "<a rel=\"nofollow\" href=\"?q=planitem_destroy_conform&itemid=" << item.second.id() << "\">Delete</a>";
             fcout <<   "</td>";
             fcout << "</tr>";
         }

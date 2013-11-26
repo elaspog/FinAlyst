@@ -75,6 +75,6 @@ table, th, td {
     border: 1px solid #221199;
 }
 
-td {
+td, th {
     padding: 5px;
 }

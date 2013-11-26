@@ -1,5 +1,9 @@
 # FinAlyst changelog #
 
+## 2013. 11. 16. ##
+
+* Added category name for items and planitems on webgui
+
 ## 2013. 11. 25. ##
 
 * Added weekly/monthly/yearly statistics on webservice interface

@@ -162,6 +162,43 @@ public:
                     " FROM `planitems` WHERE userid = ?");
     }
 
+    static void find_all_with_category(Database &database, User const &user,
+            std::vector<std::pair<Category, PlanItem>> &data)
+    {
+        typedef std::tuple<uint64_t> Params;
+        Params params = std::make_tuple(user.id());
+        typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
+                uint64_t, uint64_t, uint64_t, FixedString<256>,
+                MYSQL_TIME, MYSQL_TIME, FixedString<128>, FixedString<256>> Results;
+        database.query<Params, Results>(params,
+                    "SELECT `planitems`.`id`, `planitems`.`create`, `planitems`.`modify`, `planitems`.`userid`, "
+                        "`planitems`.`categoryid`, `planitems`.`amount`, `planitems`.`description`, "
+                        "`categories`.`create`, `categories`.`modify`,"
+                        "`categories`.`name`, `categories`.`description` "
+                    "FROM `planitems` LEFT JOIN `categories` ON `categoryid` = `categories`.`id` "
+                    "WHERE `planitems`.`userid` = ?",
+                [&database, &data] (Results &res) {
+                    data.push_back(std::make_pair(
+                            Category(database,
+                                std::get<4>(res),
+                                mysql_to_time(std::get<7>(res)),
+                                mysql_to_time(std::get<8>(res)),
+                                std::get<3>(res),
+                                std::get<9>(res).to_string(),
+                                std::get<10>(res).to_string()
+                                ),
+                            PlanItem(database,
+                                std::get<0>(res),
+                                mysql_to_time(std::get<1>(res)),
+                                mysql_to_time(std::get<2>(res)),
+                                std::get<3>(res),
+                                std::get<4>(res),
+                                std::get<5>(res),
+                                std::get<6>(res).to_string()
+                                )));
+                });
+    }
+
     void to_json(std::ostream &output)
     {
         output << "\t\t{\n";

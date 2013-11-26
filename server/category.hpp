@@ -35,6 +35,15 @@ public:
         _modify = _create;
     }
 
+    Category(Database &database, uint64_t id,
+            time_t create, time_t modify, uint64_t userid,
+            std::string const &name, std::string const &description) :
+        _database(&database),
+        _invalid(false), _detached(false), _loaded(true), _changed(false),
+        _id(id), _create(create), _modify(modify),
+        _userid(userid), _name(name), _description(description)
+    {}
+
     User user() { return User(*_database, _userid); }
 
     bool detached() const { return _detached; }
@@ -238,15 +247,6 @@ public:
     }
 
 private:
-
-    Category(Database &database, uint64_t id,
-            time_t create, time_t modify, uint64_t userid,
-            std::string const &name, std::string const &description) :
-        _database(&database),
-        _invalid(false), _detached(false), _loaded(true), _changed(false),
-        _id(id), _create(create), _modify(modify),
-        _userid(userid), _name(name), _description(description)
-    {}
 
     template <typename Params>
     static Category query_uniqe(Database &database, Params const &params,
