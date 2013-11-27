@@ -1,8 +1,13 @@
 # FinAlyst changelog #
 
-## 2013. 11. 16. ##
+## 2013. 11. 27. ##
+
+* Fixed category/item/planitem add on webservice api
+
+## 2013. 11. 26. ##
 
 * Added category name for items and planitems on webgui
+* Added additional logging
 
 ## 2013. 11. 25. ##
 

@@ -80,6 +80,7 @@ void webservice_login(Database &database,
         User user = User::find_by_name(database, request.post("username"));
         if (user.authenticate(request.post("password")))
         {
+            LOG_MESSAGE_INFO("User %s logged in", user.name().c_str());
             fcout << "\t\"sucess\": true,\n";
             fcout << "\t\"status\": 200,\n";
             fcout << "\t\"data\": null,\n";
@@ -87,12 +88,14 @@ void webservice_login(Database &database,
                 << "\"" << endl;
         } else
         {
+            LOG_MESSAGE_WARN("Login failed: authentication failed for user %s", request.post("username").c_str());
             fcout << "\t\"sucess\": false,\n";
             fcout << "\t\"status\": 401,\n";
             fcout << "\t\"data\": null\n";
         }
     } else
     {
+        LOG_MESSAGE_WARN("Login failed: got GET request expected POST");
         fcout << "\t\"sucess\": false,\n";
         fcout << "\t\"status\": 405,\n";
         fcout << "\t\"data\": null\n";
@@ -107,12 +110,14 @@ void webservice_logout(std::unique_ptr<SessionManager> &sessionman,
     fcout << "{\n";
     if (session.valid())
     {
+        LOG_MESSAGE_INFO("User %s logged out", session.user().name().c_str());
         sessionman->delete_session(session);
         fcout << "\t\"sucess\": true,\n";
         fcout << "\t\"status\": 200,\n";
         fcout << "\t\"data\": null\n";
     } else
     {
+        LOG_MESSAGE_WARN("Logout failed: invalid session");
         fcout << "\t\"sucess\": false,\n";
         fcout << "\t\"status\": 400,\n";
         fcout << "\t\"data\": null\n";
@@ -135,16 +140,23 @@ void login_page(OptsMap const &config, Database &database,
             {
                 // Create a new session
                 std::string sessionid = sessionman->new_session(user);
+                LOG_MESSAGE_INFO("User %s logged in", user.name().c_str());
                 // Set cookie and redirect to main page
                 fcout << "Location: ?q=main\r\n";
                 fcout << "Set-Cookie: sessionid=" << sessionid << "\r\n";
                 fcout << "\r\n";
                 return;
-            } else login_failed = true;
+            } else
+            {
+                login_failed = true;
+                LOG_MESSAGE_WARN("Login failed: authentication failed for user %s", username.c_str());
+            }
         }
     } else
     {
         // Has valid session redirect to main page
+        LOG_MESSAGE_INFO("User %s has vlaid session, redirecting to main page",
+                session.user().name().c_str());
         fcout << "Location: ?q=main\r\n";
         fcout << "\r\n";
         return;
@@ -166,7 +178,14 @@ void login_page(OptsMap const &config, Database &database,
 void logout_page(std::unique_ptr<SessionManager> &sessionman,
         Session &session, std::ostream &fcout)
 {
-    if (session.valid()) sessionman->delete_session(session);
+    if (session.valid())
+    {
+        LOG_MESSAGE_INFO("User %s logged out", session.user().name().c_str());
+        sessionman->delete_session(session);
+    } else
+    {
+        LOG_MESSAGE_WARN("Logout failed: invalid session");
+    }
     fcout << "Location: ?q=login\r\n";
     fcout << "Set-Cookie: sessionid=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     fcout << "\r\n\r\n";

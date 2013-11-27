@@ -16,9 +16,9 @@ namespace WebService
             Request &request, std::ostream &fcout)
     {
         Item c = BusinessLogic::item_add(database, session, request);
-        fcout << "\t\"data\": {\n";
+        fcout << "\t\"data\":\n";
         c.to_json(fcout);
-        fcout << "\t},";
+        fcout << ",\n";
         return 200;
     }
 
@@ -38,7 +38,7 @@ namespace WebService
             if (count < items.size()) fcout << ",";
             fcout << std::endl;
         }
-        fcout << "\t],\n";
+        fcout << "],\n";
         return 200;
     }
 
@@ -46,9 +46,9 @@ namespace WebService
             Request &request, std::ostream &fcout)
     {
         PlanItem c = BusinessLogic::planitem_add(database, session, request);
-        fcout << "\t\"data\": {\n";
+        fcout << "\t\"data\":\n";
         c.to_json(fcout);
-        fcout << "\t},";
+        fcout << "\t,";
         return 200;
     }
 
@@ -96,9 +96,9 @@ namespace WebService
             Request &request, std::ostream &fcout)
     {
         Category c = BusinessLogic::category_add(database, session, request);
-        fcout << "\t\"data\": {\n";
+        fcout << "\t\"data\":\n";
         c.to_json(fcout);
-        fcout << "},";
+        fcout << ",\n";
         return 200;
     }
 
@@ -106,9 +106,9 @@ namespace WebService
             Request &request, std::ostream &fcout)
     {
         Category c = BusinessLogic::category_edit(database, session, request);
-        fcout << "\t\"data\": {\n";
+        fcout << "\t\"data\":\n";
         c.to_json(fcout);
-        fcout << "},";
+        fcout << ",\n";
         return 200;
     }
 
@@ -116,9 +116,9 @@ namespace WebService
             Request &request, std::ostream &fcout)
     {
         Item c = BusinessLogic::item_edit(database, session, request);
-        fcout << "\t\"data\": {\n";
+        fcout << "\t\"data\":\n";
         c.to_json(fcout);
-        fcout << "},";
+        fcout << ",\n";
         return 200;
     }
 
@@ -126,9 +126,9 @@ namespace WebService
             Request &request, std::ostream &fcout)
     {
         PlanItem c = BusinessLogic::planitem_edit(database, session, request);
-        fcout << "\t\"data\": {\n";
+        fcout << "\t\"data\":\n";
         c.to_json(fcout);
-        fcout << "},";
+        fcout << ",\n";
         return 200;
     }
 
@@ -214,6 +214,7 @@ namespace WebService
                 status = balance_stats(database, session, request, fcout);
             else
             {
+                LOG_MESSAGE_WARN("Webservice error: 404 page not found");
                 fcout << "\t\"data\": null\n";
                 status = 404;
             }
@@ -224,16 +225,20 @@ namespace WebService
             fcout << "\t\"status\": " << status << "\n";
         } catch (BusinessLogic::MethodNotAllowed const &error)
         {
+            LOG_MESSAGE_WARN("Webservice error: %s", error.what());
             fcout << "\t\"sucess\": false,\n";
             fcout << "\t\"status\": 405,\n";
             fcout << "\t\"data\": null\n";
         } catch (BusinessLogic::AccessDenied const &error)
         {
+            LOG_MESSAGE_WARN("Webservice error: user %s acces denied: %s",
+                    session.user().name().c_str(), error.what());
             fcout << "\t\"sucess\": false,\n";
             fcout << "\t\"status\": 405,\n";
             fcout << "\t\"data\": null\n";
         } catch (BusinessLogic::MalformedRequest const &error)
         {
+            LOG_MESSAGE_WARN("Webservice error: %s", error.what());
             fcout << "\t\"sucess\": false,\n";
             fcout << "\t\"status\": 400,\n";
             fcout << "\t\"data\": null\n";
@@ -245,6 +250,7 @@ namespace WebService
             fcout << "\t\"data\": null\n";
         } catch (...)
         {
+            LOG_MESSAGE_WARN("Webservice mysterious unknown error. This should never happen!");
             fcout << "\t\"sucess\": false,\n";
             fcout << "\t\"status\": 500,\n";
             fcout << "\t\"data\": null\n";

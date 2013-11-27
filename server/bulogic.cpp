@@ -19,8 +19,7 @@ namespace BusinessLogic
             throw MalformedRequest("Category does not exits!");
         if (category.user().id() != session.user().id())
         {
-            // TODO: security alert
-            throw MalformedRequest(
+            throw AccessDenied(
                     "Categoy belongs to a different user!");
         }
         Item n(database, session.user(), category,
@@ -45,8 +44,7 @@ namespace BusinessLogic
             throw MalformedRequest("Category does not exits!");
         if (category.user().id() != session.user().id())
         {
-            // TODO: security alert
-            throw MalformedRequest(
+            throw AccessDenied(
                     "Categoy belongs to a different user!");
         }
         PlanItem n(database, session.user(), category,
