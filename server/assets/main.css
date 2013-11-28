@@ -78,3 +78,22 @@ table, th, td {
 td, th {
     padding: 5px;
 }
+
+a.apilink {
+    display:inline-block;
+    margin: 0;
+    margin-left: 5px;
+    padding: 15px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border-radius: 5px;
+    border: 1px solid #221199;
+    box-shadow: 1px 1px 3px black;
+    background: linear-gradient(to bottom,
+        #134799 0%,#2079c8 50%,#105caa 51%,#61b1e0 100%);
+    color: white;
+    text-decoration: none;
+    text-align: center;
+    text-shadow: 1px 1px 0px #221199;
+    font-size: 13px;
+}

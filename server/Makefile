@@ -5,7 +5,11 @@ apps=server
 units=server session session_mem rand logger request template_common utils \
       bulogic
 
-all: $(apps) assets/webserviceapi.html assets/changelog.html csharpexamples
+docs: assets/webserviceapi.html assets/changelog.html \
+    assets/categoryapi.html assets/itemapi.html assets/planitemapi.html \
+    assets/statisticsapi.html
+
+all: $(apps) $(docs) csharpexamples
 
 csharpexamples: clienttest.exe stresstest.exe
 
