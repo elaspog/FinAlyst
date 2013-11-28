@@ -41,6 +41,8 @@ List all the categories with name and description.
 
 **Result data:**
 
+*Array of:*
+
 || **Key**      || **Type**     || **Description**      ||
 || id           || integer      || category id          ||
 || create       || datetime     || create date          ||
@@ -56,13 +58,15 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/categories
     {
         "success": true,
         "status": 200,
-        "data": {
-            "id": 1,
-            "create": "/Date(1224043200000)/",
-            "modify": "/Date(1228035600000)/",
-            "name": "Mobile",
-            "description": "Mobile phone expenses"
-        }
+        "data": [
+            {
+                "id": 1,
+                "create": "/Date(1224043200000)/",
+                "modify": "/Date(1228035600000)/",
+                "name": "Mobile",
+                "description": "Mobile phone expenses"
+            }
+        ]
     }
 
 ### Create category
@@ -178,6 +182,8 @@ List all the items with category, amount and description.
 
 **Result data:**
 
+*Array of:*
+
 || **Key**      || **Type**     || **Description**      ||
 || id           || integer      || item id              ||
 || create       || datetime     || create date          ||
@@ -194,14 +200,16 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/items
     {
         "success": true,
         "status": 200,
-        "data": {
-            "id": 1,
-            "create": "/Date(1224043200000)/",
-            "modify": "/Date(1228035600000)/",
-            "categoryid": 3,
-            "amount": 2000,
-            "description": "Montly mobile bill"
-        }
+        "data": [
+            {
+                "id": 1,
+                "create": "/Date(1224043200000)/",
+                "modify": "/Date(1228035600000)/",
+                "categoryid": 3,
+                "amount": 2000,
+                "description": "Montly mobile bill"
+            }
+        ]
     }
 
 ### Create item
@@ -335,14 +343,16 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitems
     {
         "success": true,
         "status": 200,
-        "data": {
-            "id": 1,
-            "create": "/Date(1224043200000)/",
-            "modify": "/Date(1228035600000)/",
-            "categoryid": 5,
-            "amount": 5000,
-            "description": "Got 5000Ft for birthday, I will spend it on travelling"
-        }
+        "data": [
+            {
+                "id": 1,
+                "create": "/Date(1224043200000)/",
+                "modify": "/Date(1228035600000)/",
+                "categoryid": 5,
+                "amount": 5000,
+                "description": "Got 5000Ft for birthday, I will spend it on travelling"
+            }
+        ]
     }
 
 ### Create planitem
