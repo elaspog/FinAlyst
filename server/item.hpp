@@ -153,13 +153,22 @@ public:
     }
 
     static void find_all(Database &database,
-            User const &user, std::vector<Item> &items)
+            User const &user, std::vector<Item> &items,
+            unsigned limit=0, unsigned offset=0)
     {
-        typedef std::tuple<uint64_t> Params;
-        Params params = std::make_tuple(user.id());
-        query(database, params, items,
-            "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
-                " FROM `items` WHERE userid = ?");
+        typedef std::tuple<uint64_t, uint64_t, uint64_t> Params;
+        Params params = std::make_tuple(user.id(), limit, offset);
+        if (limit == 0)
+        {
+            query(database, params, items,
+                "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
+                    " FROM `items` WHERE userid = ?");
+        } else
+        {
+            query(database, params, items,
+                "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
+                    " FROM `items` WHERE userid = ? LIMIT ? OFFSET ?");
+        }
     }
 
     static void find_all_with_category(Database &database, User const &user,

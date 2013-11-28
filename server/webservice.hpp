@@ -25,10 +25,20 @@ namespace WebService
     unsigned items(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
-        // TODO: handle limit
-        (void)request;
+        std::string limitstr, offsetstr;
+        uint64_t limit = 0, offset = 0;
+        if (request.get("limit", limitstr))
+        {
+            if (limitstr.empty() || !parse_unsigned(limitstr, limit))
+                throw BusinessLogic::MalformedRequest("Invalid limit!");
+        }
+        if (request.get("offset", offsetstr))
+        {
+            if (offsetstr.empty() || !parse_unsigned(offsetstr, offset))
+                throw BusinessLogic::MalformedRequest("Invalid offset!");
+        }
         std::vector<Item> items;
-        Item::find_all(database, session.user(), items);
+        Item::find_all(database, session.user(), items, limit, offset);
         fcout << "\t\"data\": [\n";
         unsigned count = 0;
         for (auto &item : items)
@@ -55,10 +65,20 @@ namespace WebService
     unsigned planitems(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
-        // TODO: handle limit
-        (void)request;
+        std::string limitstr, offsetstr;
+        uint64_t limit = 0, offset = 0;
+        if (request.get("limit", limitstr))
+        {
+            if (limitstr.empty() || !parse_unsigned(limitstr, limit))
+                throw BusinessLogic::MalformedRequest("Invalid limit!");
+        }
+        if (request.get("offset", offsetstr))
+        {
+            if (offsetstr.empty() || !parse_unsigned(offsetstr, offset))
+                throw BusinessLogic::MalformedRequest("Invalid offset!");
+        }
         std::vector<PlanItem> planitems;
-        PlanItem::find_all(database, session.user(), planitems);
+        PlanItem::find_all(database, session.user(), planitems, limit, offset);
         fcout << "\t\"data\": [\n";
         unsigned count = 0;
         for (auto &item : planitems)

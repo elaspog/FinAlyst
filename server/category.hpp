@@ -251,7 +251,7 @@ public:
             "SELECT categories.`id`, categories.`create`, categories.`modify`, "
                 "categories.`userid`, categories.`name`, categories.`description`, "
                 "dailysum.day, dailysum.expensesum, dailysum.plannedsum, "
-                "(SELECT sum(i2.amount) FROM items as i2 WHERE i2.id < min(dailysum.lastid) "
+                "(SELECT sum(i2.amount) FROM items as i2 WHERE i2.id < dailysum.lastid "
                     "AND userid = ? "
                     "AND year(`create`) = year(CURRENT_DATE - INTERVAL ? MONTH) "
                     ") as amountsum "

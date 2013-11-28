@@ -174,11 +174,15 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/category_destroy
 
 ### List items
 
-**TODO: implement limits**
-
 List all the items with category, amount and description.
 
 **Request type:** HTTP GET
+
+**Request arguments:**
+
+|| **Key** || **Type** || **Description**                             ||
+|| limit   || integer  || limit number of results elements (optional) ||
+|| offset  || integer  || query offset (optional)                     ||
 
 **Result data:**
 
@@ -319,11 +323,15 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/item_destroy
 
 ### List plan items
 
-**TODO: implement limits**
-
 List all the plan items with category, amount and description.
 
 **Request type:** HTTP GET
+
+**Request arguments:**
+
+|| **Key** || **Type** || **Description**                             ||
+|| limit   || integer  || limit number of results elements (optional) ||
+|| offset  || integer  || query offset (optional)                     ||
 
 **Result data:**
 

@@ -4,6 +4,7 @@
 
 * Fixed webservice API documentation
 * Fixed unsigned conversion
+* Added limit, offset support to items and planitems
 
 ## 2013. 11. 27. ##
 
