@@ -1,5 +1,6 @@
 #include "utils.hpp"
 #include <algorithm>
+#include <string>
 #include <cstring>
 #include <istream>
 #include <stdexcept>
@@ -67,8 +68,9 @@ bool parse_unsigned(std::string const &str, uint64_t &value)
     size_t pos;
     try
     {
-        value = std::stoll(str, &pos, 10);
-        if (pos != str.length()) return false;
+        int64_t v = std::stoll(str, &pos, 10);
+        if (v < 0 || pos != str.length()) return false;
+        value = v;
     } catch (...)
     {
         return false;

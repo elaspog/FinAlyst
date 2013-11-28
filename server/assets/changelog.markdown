@@ -1,5 +1,10 @@
 # FinAlyst changelog #
 
+## 2013. 11. 28. ##
+
+* Fixed webservice API documentation
+* Fixed unsigned conversion
+
 ## 2013. 11. 27. ##
 
 * Fixed category/item/planitem add on webservice api
