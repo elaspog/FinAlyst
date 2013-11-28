@@ -172,9 +172,10 @@ public:
         unsigned interval;
         uint64_t expensesum;
         uint64_t plannedsum;
+        int64_t cumulative;
 
-        BalanceData(unsigned interval, uint64_t expensesum, uint64_t plannedsum)
-            : interval(interval), expensesum(expensesum), plannedsum(plannedsum)
+        BalanceData(unsigned interval, uint64_t expensesum, uint64_t plannedsum, int64_t cumulative)
+            : interval(interval), expensesum(expensesum), plannedsum(plannedsum), cumulative(cumulative)
         {}
     };
 
@@ -227,7 +228,84 @@ public:
                 data.push_back(BalanceData(
                         std::get<0>(res),
                         std::get<1>(res),
-                        std::get<2>(res)));
+                        std::get<2>(res),
+                        0));
+            });
+    }
+
+    static void daily_overview(Database &database, User &user,
+            std::vector<std::pair<Category, BalanceData>> &data,
+            unsigned month = 0)
+    {
+        std::string gran;
+        typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
+                uint64_t, FixedString<128>, FixedString<256>,
+                uint64_t, uint64_t, uint64_t, int64_t> Results;
+        /*typedef std::tuple<uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, 
+                uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t> Params;
+        Params params = std::make_tuple(user.id(), month, month, user.id(), month, month,
+                user.id(), month, month, user.id(), month, month);*/
+        typedef std::tuple<uint64_t, uint64_t, uint64_t, uint64_t> Params;
+        Params params = std::make_tuple(user.id(), month, user.id(), user.id());
+        database.query<Params, Results>(params,
+            "SELECT categories.`id`, categories.`create`, categories.`modify`, "
+                "categories.`userid`, categories.`name`, categories.`description`, "
+                "dailysum.day, dailysum.expensesum, dailysum.plannedsum, "
+                "(SELECT sum(i2.amount) FROM items as i2 WHERE i2.id < min(dailysum.lastid) "
+                    "AND userid = ? "
+                    "AND year(`create`) = year(CURRENT_DATE - INTERVAL ? MONTH) "
+                    ") as amountsum "
+            "FROM "
+            "(SELECT "
+                "DAY(items.`create`) AS `day`, "
+                "SUM(`items`.`amount`) AS `expensesum`, "
+                "`planned`.`amount` AS `plannedsum`, "
+                "min(items.id) AS lastid, "
+                "items.categoryid "
+                "FROM items "
+                "LEFT JOIN "
+                    "(SELECT SUM(`amount`) AS amount, `create`, categoryid FROM planitems "
+                    "WHERE userid = ? "
+                        //"AND year(`create`) = year(CURRENT_DATE - INTERVAL ? MONTH) "
+                        //"AND month(planitems.`create`) = month(CURRENT_DATE - INTERVAL ? MONTH) "
+                    "GROUP BY `categoryid`, DAY(planitems.`create`)) planned "
+                    "ON DAY(items.`create`) = DAY(planned.`create`) "
+                    "AND planned.`categoryid` = items.`categoryid`"
+                "WHERE `items`.userid = ? "
+                    //"AND year(items.`create`) = year(CURRENT_DATE - INTERVAL ? MONTH) "
+                    //"AND month(items.`create`) = month(CURRENT_DATE - INTERVAL ? MONTH) "
+                "GROUP BY items.`categoryid`, DAY(items.`create`)) dailysum "
+                "LEFT JOIN `categories` ON `categories`.`id` = `dailysum`.`categoryid` "
+            /*" union "
+            "SELECT categories.`id`, categories.`create`, categories.`modify`, "
+                "categories.`userid`, categories.`name`, categories.`description`, "
+                "DAY(planitems.`create`) AS `day`, `expenses`.`amount` AS `expensesum`, SUM(`planitems`.`amount`) AS `plannedsum` "
+                "FROM planitems "
+                "LEFT JOIN "
+                    "(SELECT SUM(`amount`) AS amount, `create`, categoryid FROM items "
+                    "WHERE userid = ? AND year(items.`create`) = year(CURRENT_DATE - INTERVAL ? MONTH) "
+                    "AND month(items.`create`) = month(CURRENT_DATE - INTERVAL ? MONTH) "
+                    "GROUP BY `categoryid`, DAY(items.`create`)) expenses "
+                    "ON DAY(planitems.`create`) = DAY(expenses.`create`) "
+                    "AND planitems.`categoryid` = expenses.`categoryid` "
+                "LEFT JOIN `categories` ON `categories`.`id` = `planitems`.`categoryid` "
+                "WHERE `planitems`.userid = ? AND year(planitems.`create`) = year(CURRENT_DATE - INTERVAL ? MONTH) "
+                "AND month(planitems.`create`) = month(CURRENT_DATE - INTERVAL ? MONTH) "
+                "GROUP BY planitems.`categoryid`, DAY(planitems.`create`) "*/,
+            [&database, &data] (Results &res) {
+                data.push_back(std::make_pair(
+                        Category(database,
+                            std::get<0>(res),
+                            mysql_to_time(std::get<1>(res)),
+                            mysql_to_time(std::get<2>(res)),
+                            std::get<3>(res),
+                            std::get<4>(res).to_string(),
+                            std::get<5>(res).to_string()),
+                        BalanceData(
+                            std::get<6>(res),
+                            std::get<7>(res),
+                            std::get<8>(res),
+                            std::get<9>(res))));
             });
     }
    

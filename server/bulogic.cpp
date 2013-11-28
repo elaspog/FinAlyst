@@ -258,7 +258,7 @@ namespace BusinessLogic
         if (!c.valid())
             throw MalformedRequest("Category does not exists!");
         if (c.user().id() != session.user().id())
-            throw AccessDenied("Can't change category, "
+            throw AccessDenied("Can't list category stats, "
                     "it belongs to different user!");
 
         std::string yearstr;
@@ -266,10 +266,27 @@ namespace BusinessLogic
         if (request.get("relative_year", yearstr))
         {
             if (yearstr.empty() || !parse_unsigned(yearstr, relative_year))
-                throw MalformedRequest("Invalid year!");
+                throw MalformedRequest("Invalid relative_year!");
         }
 
         c.balance_stats(data, gran, relative_year);
     }
+
+    void daily_overview(Database &database, Session &session, Request &request,
+            std::vector<std::pair<Category, Category::BalanceData>> &data)
+    {
+        std::string monthstr;
+        uint64_t relative_month = 0;
+        if (request.get("relative_month", monthstr))
+        {
+            if (monthstr.empty() || !parse_unsigned(monthstr, relative_month))
+                throw MalformedRequest("Invalid relative_month!");
+        }
+
+        Category::daily_overview(database, session.user(),
+                data, relative_month);
+    }
+
+
 
 }

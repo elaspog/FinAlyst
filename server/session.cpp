@@ -81,7 +81,7 @@ void webservice_login(Database &database,
         if (user.authenticate(request.post("password")))
         {
             LOG_MESSAGE_INFO("User %s logged in", user.name().c_str());
-            fcout << "\t\"sucess\": true,\n";
+            fcout << "\t\"success\": true,\n";
             fcout << "\t\"status\": 200,\n";
             fcout << "\t\"data\": null,\n";
             fcout << "\t\"sessionid\": \"" << sessionman->new_session(user)
@@ -89,14 +89,14 @@ void webservice_login(Database &database,
         } else
         {
             LOG_MESSAGE_WARN("Login failed: authentication failed for user %s", request.post("username").c_str());
-            fcout << "\t\"sucess\": false,\n";
+            fcout << "\t\"success\": false,\n";
             fcout << "\t\"status\": 401,\n";
             fcout << "\t\"data\": null\n";
         }
     } else
     {
         LOG_MESSAGE_WARN("Login failed: got GET request expected POST");
-        fcout << "\t\"sucess\": false,\n";
+        fcout << "\t\"success\": false,\n";
         fcout << "\t\"status\": 405,\n";
         fcout << "\t\"data\": null\n";
     }
@@ -112,13 +112,13 @@ void webservice_logout(std::unique_ptr<SessionManager> &sessionman,
     {
         LOG_MESSAGE_INFO("User %s logged out", session.user().name().c_str());
         sessionman->delete_session(session);
-        fcout << "\t\"sucess\": true,\n";
+        fcout << "\t\"success\": true,\n";
         fcout << "\t\"status\": 200,\n";
         fcout << "\t\"data\": null\n";
     } else
     {
         LOG_MESSAGE_WARN("Logout failed: invalid session");
-        fcout << "\t\"sucess\": false,\n";
+        fcout << "\t\"success\": false,\n";
         fcout << "\t\"status\": 400,\n";
         fcout << "\t\"data\": null\n";
     }

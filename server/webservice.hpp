@@ -165,10 +165,37 @@ namespace WebService
         unsigned count = 0;
         for (auto &p : data)
         {
+            count++;
             fcout << "\t{\n";
-            fcout << "\t\tinterval: " << p.interval << ",\n";
-            fcout << "\t\texpensesum: " << p.expensesum << ",\n";
-            fcout << "\t\tplannedsum: " << p.plannedsum << "\n";
+            fcout << "\t\t\"interval\": " << p.interval << ",\n";
+            fcout << "\t\t\"expensesum\": " << p.expensesum << ",\n";
+            fcout << "\t\t\"plannedsum\": " << p.plannedsum << "\n";
+            fcout << "\t}";
+            if (count < data.size()) fcout << ",";
+            fcout << std::endl;
+        }
+        fcout << "\t],\n";
+        return 200;
+    }
+
+    unsigned daily_overview(Database &database, Session &session,
+            Request &request, std::ostream &fcout)
+    {
+        std::vector<std::pair<Category, Category::BalanceData>> data;
+        BusinessLogic::daily_overview(database, session, request, data);
+        fcout << "\t\"data\": [\n";
+        unsigned count = 0;
+        for (auto &p : data)
+        {
+            count++;
+            fcout << "\t{\n";
+            fcout << "\t\t\"category\": ";
+            p.first.to_json(fcout);
+            fcout << ",\n";
+            fcout << "\t\t\"interval\": " << p.second.interval << ",\n";
+            fcout << "\t\t\"expensesum\": " << p.second.expensesum << ",\n";
+            fcout << "\t\t\"plannedsum\": " << p.second.plannedsum << "\n";
+            fcout << "\t\t\"cumulative\": " << p.second.cumulative << "\n";
             fcout << "\t}";
             if (count < data.size()) fcout << ",";
             fcout << std::endl;
@@ -210,8 +237,10 @@ namespace WebService
                 status = item_destroy(database, session, request, fcout);
             else if (query == "webservice/planitem_destroy")
                 status = planitem_destroy(database, session, request, fcout);
-             else if (query == "webservice/balance_stats")
+            else if (query == "webservice/balance_stats")
                 status = balance_stats(database, session, request, fcout);
+            else if (query == "webservice/daily_overview")
+                status = daily_overview(database, session, request, fcout);
             else
             {
                 LOG_MESSAGE_WARN("Webservice error: 404 page not found");
@@ -219,39 +248,39 @@ namespace WebService
                 status = 404;
             }
             if (status == 200)
-                fcout << "\t\"sucess\": true,\n";
+                fcout << "\t\"success\": true,\n";
             else
-                fcout << "\t\"sucess\": false,\n";
+                fcout << "\t\"success\": false,\n";
             fcout << "\t\"status\": " << status << "\n";
         } catch (BusinessLogic::MethodNotAllowed const &error)
         {
             LOG_MESSAGE_WARN("Webservice error: %s", error.what());
-            fcout << "\t\"sucess\": false,\n";
+            fcout << "\t\"success\": false,\n";
             fcout << "\t\"status\": 405,\n";
             fcout << "\t\"data\": null\n";
         } catch (BusinessLogic::AccessDenied const &error)
         {
             LOG_MESSAGE_WARN("Webservice error: user %s acces denied: %s",
                     session.user().name().c_str(), error.what());
-            fcout << "\t\"sucess\": false,\n";
+            fcout << "\t\"success\": false,\n";
             fcout << "\t\"status\": 405,\n";
             fcout << "\t\"data\": null\n";
         } catch (BusinessLogic::MalformedRequest const &error)
         {
             LOG_MESSAGE_WARN("Webservice error: %s", error.what());
-            fcout << "\t\"sucess\": false,\n";
+            fcout << "\t\"success\": false,\n";
             fcout << "\t\"status\": 400,\n";
             fcout << "\t\"data\": null\n";
         } catch (std::exception const &error)
         {
             LOG_MESSAGE_WARN("Webservice unknown error: %s", error.what());
-            fcout << "\t\"sucess\": false,\n";
+            fcout << "\t\"success\": false,\n";
             fcout << "\t\"status\": 500,\n";
             fcout << "\t\"data\": null\n";
         } catch (...)
         {
             LOG_MESSAGE_WARN("Webservice mysterious unknown error. This should never happen!");
-            fcout << "\t\"sucess\": false,\n";
+            fcout << "\t\"success\": false,\n";
             fcout << "\t\"status\": 500,\n";
             fcout << "\t\"data\": null\n";
         }

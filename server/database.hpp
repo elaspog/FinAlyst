@@ -59,7 +59,7 @@ inline time_t mysql_to_time(MYSQL_TIME &dt)
     bt.tm_min = dt.minute;
     bt.tm_sec = dt.second;
     bt.tm_year = dt.year-1900;
-    bt.tm_mon = dt.month;
+    bt.tm_mon = dt.month-1;
     bt.tm_mday = dt.day;
     return mktime(&bt);
 }
@@ -73,7 +73,7 @@ inline void time_to_mysql(time_t t, MYSQL_TIME &dt)
     dt.minute = bt.tm_min;
     dt.second = bt.tm_sec;
     dt.year = bt.tm_year+1900;
-    dt.month = bt.tm_mon;
+    dt.month = bt.tm_mon+1;
     dt.day = bt.tm_mday;
     dt.neg = false;
 }
@@ -94,6 +94,32 @@ inline MYSQL_BIND mbind_fixed(char const *str, unsigned long &size, size_t fixed
     memset(&bind, 0, sizeof(bind));
     bind.buffer_type = MYSQL_TYPE_STRING;
     bind.buffer = (void*)str;
+    bind.buffer_length = size;
+    bind.length = &size;
+    bind.is_null = 0;
+    return bind;
+}
+
+inline MYSQL_BIND mbind(uint64_t const &num, unsigned long &size)
+{
+    size = sizeof(num);
+    MYSQL_BIND bind;
+    memset(&bind, 0, sizeof(bind));
+    bind.buffer_type = MYSQL_TYPE_LONGLONG;
+    bind.buffer = (void*)&num;
+    bind.buffer_length = size;
+    bind.length = &size;
+    bind.is_null = 0;
+    return bind;
+}
+
+inline MYSQL_BIND mbind(int64_t const &num, unsigned long &size)
+{
+    size = sizeof(num);
+    MYSQL_BIND bind;
+    memset(&bind, 0, sizeof(bind));
+    bind.buffer_type = MYSQL_TYPE_LONGLONG;
+    bind.buffer = (void*)&num;
     bind.buffer_length = size;
     bind.length = &size;
     bind.is_null = 0;
@@ -122,19 +148,6 @@ MYSQL_BIND mbind(FixedString<Size> const &str, unsigned long &size)
     bind.buffer_type = MYSQL_TYPE_STRING;
     bind.buffer = (void*)str.c_str();
     bind.buffer_length = Size;
-    bind.length = &size;
-    bind.is_null = 0;
-    return bind;
-}
-
-inline MYSQL_BIND mbind(uint64_t const &num, unsigned long &size)
-{
-    size = sizeof(num);
-    MYSQL_BIND bind;
-    memset(&bind, 0, sizeof(bind));
-    bind.buffer_type = MYSQL_TYPE_LONGLONG;
-    bind.buffer = (void*)&num;
-    bind.buffer_length = size;
     bind.length = &size;
     bind.is_null = 0;
     return bind;

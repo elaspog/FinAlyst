@@ -166,7 +166,7 @@ int main(void) {
                         {
                             html_content(fcout);
                             fcout << "{\n";
-                            fcout << "\t\"sucess\": false,\n";
+                            fcout << "\t\"success\": false,\n";
                             fcout << "\t\"status\": 401\n";
                             fcout << "}";
                         }

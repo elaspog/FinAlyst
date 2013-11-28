@@ -3,6 +3,8 @@
 ## 2013. 11. 27. ##
 
 * Fixed category/item/planitem add on webservice api
+* Fixed small bugs and typos
+* Added daily_overview request
 
 ## 2013. 11. 26. ##
 

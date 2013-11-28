@@ -54,7 +54,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/categories
 **JSON example:**
 
     {
-        "sucess": true,
+        "success": true,
         "status": 200,
         "data": {
             "id": 1,
@@ -91,7 +91,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/category_add
 **JSON example:**
 
     {
-        "sucess": true,
+        "success": true,
         "status": 200,
         "data": {
             "id": 1,
@@ -130,7 +130,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/category_edit
 **JSON example:**
 
     {
-        "sucess": true,
+        "success": true,
         "status": 200,
         "data": {
             "id": 1,
@@ -160,7 +160,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/category_destroy
 **JSON example:**
 
     {
-        "sucess": true,
+        "success": true,
         "status": 200,
         "data": null
     }
@@ -192,7 +192,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/items
 **JSON example:**
 
     {
-        "sucess": true,
+        "success": true,
         "status": 200,
         "data": {
             "id": 1,
@@ -231,7 +231,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/item_add
 **JSON example:**
 
     {
-        "sucess": true,
+        "success": true,
         "status": 200,
         "data": {
             "id": 1,
@@ -271,7 +271,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/item_edit
 **JSON example:**
 
     {
-        "sucess": true,
+        "success": true,
         "status": 200,
         "data": {
             "id": 1,
@@ -301,7 +301,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/item_destroy
 **JSON example:**
 
     {
-        "sucess": true,
+        "success": true,
         "status": 200,
         "data": null
     }
@@ -333,7 +333,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitems
 **JSON example:**
 
     {
-        "sucess": true,
+        "success": true,
         "status": 200,
         "data": {
             "id": 1,
@@ -372,7 +372,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitem_add
 **JSON example:**
 
     {
-        "sucess": true,
+        "success": true,
         "status": 200,
         "data": {
             "id": 1,
@@ -412,7 +412,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitem_edit
 **JSON example:**
 
     {
-        "sucess": true,
+        "success": true,
         "status": 200,
         "data": {
             "id": 1,
@@ -443,14 +443,14 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitem_destroy
 **JSON example:**
 
     {
-        "sucess": true,
+        "success": true,
         "status": 200,
         "data": null
     }
 
 ## Statistics
 
-### Weekly, montly, yearly statistics
+### Daily category expenses overview
 
 Calculate plan/expense balance for the specified category for every
 week/month or year in the specified timeframe. Balance **always** calculated for
@@ -487,7 +487,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/balance_stats?categoryid=46
 **JSON example:**
 
     {
-	"sucess": true,
+	"success": true,
 	"status": 200,
 	"data": [
             {
@@ -503,3 +503,35 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/balance_stats?categoryid=46
 	]
     }
 
+### Weekly, montly, yearly statistics
+
+UNFINISHED
+
+**Request type:** HTTP GET
+
+**Request arguments:**
+
+|| **Key**        || **Type**     || **Description**                                                                  ||
+|| categoryid     || integer      || plan item id                                                                     ||
+|| granulation    || string       || week/month/year                                                                  ||
+|| relative_month || integer      || unsigned value, search limited this month (optional) (default: 0, current month) ||
+
+**Result data:**
+
+|| **Key**      || **Type**                  || **Description**       ||
+|| -            || array of Result Interval  || result interval       ||
+
+**Result Interval**
+
+|| **Key**      || **Type** || **Description**                       ||
+|| interval     || integer  || week of year/month/year               ||
+|| expensesum   || integer  || sum of expense in the interval        ||
+|| plannedsum   || integer  || sum of planned amount in the interval ||
+|| cumulative   || integer  || TODO ||
+
+**Example URL:**
+http://myfinalyst/fcgi-bin/finalyst?q=webservice/daily_overview?relative_month=1
+
+**JSON example:**
+
+TODO 
