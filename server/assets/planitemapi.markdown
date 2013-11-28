@@ -1,3 +1,4 @@
+<a class="apilink" href="webserviceapi.html">Basic format</a>
 <a class="apilink" href="categoryapi.html">Categories</a>
 <a class="apilink" href="itemapi.html">Items</a>
 <a class="apilink" href="planitemapi.html">Planitems</a>

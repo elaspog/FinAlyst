@@ -5,11 +5,11 @@ apps=server
 units=server session session_mem rand logger request template_common utils \
       bulogic
 
+all: $(apps) $(docs) csharpexamples
+
 docs: assets/webserviceapi.html assets/changelog.html \
     assets/categoryapi.html assets/itemapi.html assets/planitemapi.html \
     assets/statisticsapi.html
-
-all: $(apps) $(docs) csharpexamples
 
 csharpexamples: clienttest.exe stresstest.exe
 
@@ -29,4 +29,4 @@ $(apps): %: %.o $(units:=.o)
 clean:
 	rm -f server *.o *.d clienttest.exe stresstest.exe *.mdb
 
-.PHONY: all clean csharpexamples
+.PHONY: all clean csharpexamples docs
