@@ -241,45 +241,55 @@ public:
         typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
                 uint64_t, FixedString<128>, FixedString<256>,
                 uint64_t, uint64_t, uint64_t, int64_t> Results;
-        /*typedef std::tuple<uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, 
-                uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t> Params;
-        Params params = std::make_tuple(user.id(), month, month, user.id(), month, month,
-                user.id(), month, month, user.id(), month, month);*/
-        typedef std::tuple<uint64_t, uint64_t, uint64_t, uint64_t> Params;
-        Params params = std::make_tuple(user.id(), month, user.id(), user.id());
+        typedef std::tuple<
+                uint64_t, uint64_t, uint64_t, uint64_t,
+                uint64_t, uint64_t, uint64_t, uint64_t,
+                uint64_t, uint64_t, uint64_t, uint64_t,
+                uint64_t, uint64_t, uint64_t, uint64_t> Params;
+        Params params = std::make_tuple(user.id(), month,
+                user.id(), month, user.id(), month,
+                month, user.id(), month, month,
+                user.id(), month, month, user.id(),
+                month, month);
         database.query<Params, Results>(params,
             "SELECT categories.`id`, categories.`create`, categories.`modify`, "
                 "categories.`userid`, categories.`name`, categories.`description`, "
                 "dailysum.day, dailysum.expensesum, dailysum.plannedsum, "
-                "(SELECT sum(i2.amount) FROM items as i2 WHERE i2.id < dailysum.lastid "
-                    "AND userid = ? "
+                "((SELECT IFNULL(sum(i1.amount), 0) FROM planitems as i1 WHERE i1.`create` <= dailysum.`create` "
+                    "AND userid = ? AND categoryid = `dailysum`.`categoryid` "
                     "AND year(`create`) = year(CURRENT_DATE - INTERVAL ? MONTH) "
-                    ") as amountsum "
+                    ") - "
+                "(SELECT IFNULL(sum(i2.amount), 0) FROM items as i2 WHERE i2.`create` <= dailysum.`create` "
+                    "AND userid = ? AND categoryid = `dailysum`.`categoryid` "
+                    "AND year(`create`) = year(CURRENT_DATE - INTERVAL ? MONTH) "
+                    ")) as amountsum "
             "FROM "
             "(SELECT "
                 "DAY(items.`create`) AS `day`, "
                 "SUM(`items`.`amount`) AS `expensesum`, "
                 "`planned`.`amount` AS `plannedsum`, "
-                "min(items.id) AS lastid, "
+                "MAX(items.`create`) AS `create`, "
                 "items.categoryid "
                 "FROM items "
                 "LEFT JOIN "
                     "(SELECT SUM(`amount`) AS amount, `create`, categoryid FROM planitems "
                     "WHERE userid = ? "
-                        //"AND year(`create`) = year(CURRENT_DATE - INTERVAL ? MONTH) "
-                        //"AND month(planitems.`create`) = month(CURRENT_DATE - INTERVAL ? MONTH) "
+                        "AND year(`create`) = year(CURRENT_DATE - INTERVAL ? MONTH) "
+                        "AND month(planitems.`create`) = month(CURRENT_DATE - INTERVAL ? MONTH) "
                     "GROUP BY `categoryid`, DAY(planitems.`create`)) planned "
                     "ON DAY(items.`create`) = DAY(planned.`create`) "
                     "AND planned.`categoryid` = items.`categoryid`"
                 "WHERE `items`.userid = ? "
-                    //"AND year(items.`create`) = year(CURRENT_DATE - INTERVAL ? MONTH) "
-                    //"AND month(items.`create`) = month(CURRENT_DATE - INTERVAL ? MONTH) "
-                "GROUP BY items.`categoryid`, DAY(items.`create`)) dailysum "
-                "LEFT JOIN `categories` ON `categories`.`id` = `dailysum`.`categoryid` "
-            /*" union "
-            "SELECT categories.`id`, categories.`create`, categories.`modify`, "
-                "categories.`userid`, categories.`name`, categories.`description`, "
-                "DAY(planitems.`create`) AS `day`, `expenses`.`amount` AS `expensesum`, SUM(`planitems`.`amount`) AS `plannedsum` "
+                    "AND year(items.`create`) = year(CURRENT_DATE - INTERVAL ? MONTH) "
+                    "AND month(items.`create`) = month(CURRENT_DATE - INTERVAL ? MONTH) "
+                "GROUP BY items.`categoryid`, DAY(items.`create`) "
+            " union "
+            "SELECT " 
+                "DAY(planitems.`create`) AS `day`, "
+                "`expenses`.`amount` AS `expensesum`, "
+                "SUM(`planitems`.`amount`) AS `plannedsum`, "
+                "MAX(planitems.`create`) as `create`, "
+                "planitems.categoryid "
                 "FROM planitems "
                 "LEFT JOIN "
                     "(SELECT SUM(`amount`) AS amount, `create`, categoryid FROM items "
@@ -288,10 +298,10 @@ public:
                     "GROUP BY `categoryid`, DAY(items.`create`)) expenses "
                     "ON DAY(planitems.`create`) = DAY(expenses.`create`) "
                     "AND planitems.`categoryid` = expenses.`categoryid` "
-                "LEFT JOIN `categories` ON `categories`.`id` = `planitems`.`categoryid` "
                 "WHERE `planitems`.userid = ? AND year(planitems.`create`) = year(CURRENT_DATE - INTERVAL ? MONTH) "
                 "AND month(planitems.`create`) = month(CURRENT_DATE - INTERVAL ? MONTH) "
-                "GROUP BY planitems.`categoryid`, DAY(planitems.`create`) "*/,
+                "GROUP BY planitems.`categoryid`, DAY(planitems.`create`)) dailysum "
+            "LEFT JOIN `categories` ON `categories`.`id` = `dailysum`.`categoryid` ",
             [&database, &data] (Results &res) {
                 data.push_back(std::make_pair(
                         Category(database,
