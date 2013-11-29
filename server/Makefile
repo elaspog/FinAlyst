@@ -5,7 +5,7 @@ apps=server
 units=server session session_mem rand logger request template_common utils \
       bulogic
 
-all: $(apps) $(docs) csharpexamples
+all: $(apps) docs csharpexamples
 
 docs: assets/webserviceapi.html assets/changelog.html \
     assets/categoryapi.html assets/itemapi.html assets/planitemapi.html \
