@@ -363,6 +363,20 @@ namespace WebGUI
         }
     }
 
+    void balance_stats(Database &database, Session &session,
+            Request &request, std::ostream &fcout)
+    {
+        (void)request; (void)session;
+        fcout << "<h2>Daily overview</h2>";
+        std::vector<Category::BalanceData> data;
+        Category c = Category::find(database, 46);
+        c.balance_stats(data, Category::StatGranulation::weekly);
+        /*for (auto &b : data)
+        {
+            //
+        }*/
+    }
+
     void daily_overview(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {

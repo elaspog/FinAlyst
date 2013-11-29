@@ -22,7 +22,7 @@ in relative_year request agrument to get statistics about last year
 || **Key**       || **Type**     || **Description**                                                                ||
 || categoryid    || integer      || plan item id                                                                   ||
 || granulation   || string       || week/month/year                                                                ||
-|| relative_year || integer      || unsigned value, search limited this year (optional) (default: 0, current year) ||
+|| year          || integer      || unsigned value, search limited this year (optional) (default: 0, current year) ||
 
 **Result data:**
 

@@ -126,7 +126,7 @@ namespace BusinessLogic
         if (request.post("categoryid", categoryid_str))
         {
             uint64_t categoryid;
-            if (id_str.empty() || !parse_unsigned(categoryid_str, categoryid))
+            if (categoryid_str.empty() || !parse_unsigned(categoryid_str, categoryid))
                 throw MalformedRequest("Invalid categoryid!");
             Category category = Category::find(database, categoryid);
             if (!category.valid())
@@ -170,7 +170,7 @@ namespace BusinessLogic
         if (request.post("categoryid", categoryid_str))
         {
             uint64_t categoryid;
-            if (id_str.empty() || !parse_unsigned(categoryid_str, categoryid))
+            if (categoryid_str.empty() || !parse_unsigned(categoryid_str, categoryid))
                 throw MalformedRequest("Invalid categoryid!");
             Category category = Category::find(database, categoryid);
             if (!category.valid())
@@ -262,14 +262,14 @@ namespace BusinessLogic
                     "it belongs to different user!");
 
         std::string yearstr;
-        uint64_t relative_year = 0;
-        if (request.get("relative_year", yearstr))
+        uint64_t year = 0;
+        if (request.get("year", yearstr))
         {
-            if (yearstr.empty() || !parse_unsigned(yearstr, relative_year))
-                throw MalformedRequest("Invalid relative_year!");
+            if (yearstr.empty() || !parse_unsigned(yearstr, year))
+                throw MalformedRequest("Invalid year!");
         }
 
-        c.balance_stats(data, gran, relative_year);
+        c.balance_stats(data, gran, year);
     }
 
     void daily_overview(Database &database, Session &session, Request &request,
