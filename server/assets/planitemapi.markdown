@@ -94,7 +94,7 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/planitem_add
 **Request arguments:**
 
 || **Key**      || **Type**     || **Description**             ||
-|| planid       || integer      || plan item id                ||
+|| planitemid   || integer      || plan item id                ||
 || categoryid   || integer      || category id (optional)      ||
 || amount       || integer      || money amount (optional)     ||
 || description  || string[255]  || item description (optional) ||
