@@ -372,12 +372,6 @@ namespace WebGUI
         std::map<Category, std::vector<Category::BalanceData>> sorted;
         Category::daily_overview(database, session.user(), data);
         for (auto &d : data) sorted[d.first].push_back(d.second);
-        /*for (auto &d : sorted)
-        {
-            std::sort(d.second.begin(), d.second.end(),
-                [](const Category::BalanceData &a, const Category::BalanceData &b) {
-                     return a.interval > b.interval; });
-        }*/
         fcout << "<table><tr><th>Day</th>";
         for (auto &d : sorted) fcout << "<th>" << d.first.name() << "</th>";
         fcout << "</tr>";

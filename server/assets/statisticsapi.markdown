@@ -6,7 +6,7 @@
 
 ## Statistics
 
-### Daily category expenses overview
+### Weekly, montly, yearly statistics
 
 Calculate plan/expense balance for the specified category for every
 week/month or year in the specified timeframe. Balance **always** calculated for
@@ -14,7 +14,6 @@ week/month or year in the specified timeframe. Balance **always** calculated for
 By default balance statistics calculated in the current year, pass 1 (or more)
 in relative_year request agrument to get statistics about last year
 (or the previous years).
-
 
 **Request type:** HTTP GET
 
@@ -59,9 +58,9 @@ http://myfinalyst/fcgi-bin/finalyst?q=webservice/balance_stats?categoryid=46
 	]
     }
 
-### Weekly, montly, yearly statistics
+### Daily category expenses overview
 
-UNFINISHED
+Group expenses and planned amounts daily and calculate balance.
 
 **Request type:** HTTP GET
 
@@ -79,15 +78,44 @@ UNFINISHED
 
 **Result Interval**
 
-|| **Key**      || **Type** || **Description**                       ||
-|| interval     || integer  || week of year/month/year               ||
-|| expensesum   || integer  || sum of expense in the interval        ||
-|| plannedsum   || integer  || sum of planned amount in the interval ||
-|| cumulative   || integer  || TODO ||
+|| **Key**      || **Type** || **Description**                        ||
+|| interval     || integer  || week of year/month/year                ||
+|| expensesum   || integer  || sum of expense in the interval         ||
+|| plannedsum   || integer  || sum of planned amount in the interval  ||
+|| cumulative   || integer  || balance of planned amount and expenses ||
 
 **Example URL:**
 http://myfinalyst/fcgi-bin/finalyst?q=webservice/daily_overview?relative_month=1
 
 **JSON example:**
 
-TODO 
+    {
+	"data": [
+	    {
+		"category": {
+			"id": "458",
+			"create": "/Date(1385673018000)/",
+			"modify": "/Date(1385673018000)/",
+			"name": "Élelmiszer",
+			"description": "Napi élelmiszer"
+		},
+		"interval": 23,
+		"expensesum": 3000,
+		"plannedsum": 0
+		"cumulative": -3000
+	    },
+	    {
+		"category": {
+			"id": "458",
+			"create": "/Date(1385673018000)/",
+			"modify": "/Date(1385673018000)/",
+			"name": "Élelmiszer",
+			"description": "Napi élelmiszer"
+		},
+		"interval": 24,
+		"expensesum": 5000,
+		"plannedsum": 0
+		"cumulative": -8000
+	    }
+	]
+    }

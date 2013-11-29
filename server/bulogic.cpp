@@ -126,7 +126,7 @@ namespace BusinessLogic
         if (request.post("categoryid", categoryid_str))
         {
             uint64_t categoryid;
-            if (id_str.empty() || !parse_unsigned(id_str, categoryid))
+            if (id_str.empty() || !parse_unsigned(categoryid_str, categoryid))
                 throw MalformedRequest("Invalid categoryid!");
             Category category = Category::find(database, categoryid);
             if (!category.valid())
@@ -170,7 +170,7 @@ namespace BusinessLogic
         if (request.post("categoryid", categoryid_str))
         {
             uint64_t categoryid;
-            if (id_str.empty() || !parse_unsigned(id_str, categoryid))
+            if (id_str.empty() || !parse_unsigned(categoryid_str, categoryid))
                 throw MalformedRequest("Invalid categoryid!");
             Category category = Category::find(database, categoryid);
             if (!category.valid())
