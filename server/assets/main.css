@@ -97,3 +97,16 @@ a.apilink {
     text-shadow: 1px 1px 0px #221199;
     font-size: 13px;
 }
+
+td p.expense, td p.plan {
+    margin: 0;
+    font-size: 12px;
+}
+
+td p.expense {
+    color: red;
+}
+
+td p.plan {
+    color: blue;
+}

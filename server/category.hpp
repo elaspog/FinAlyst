@@ -51,8 +51,13 @@ public:
     uint64_t id() const { return _id; }
     time_t create() { lazy_load(); return _create; }
     time_t modify() { lazy_load(); return _modify; }
-    std::string name() { lazy_load(); return _name; }
-    std::string description() { lazy_load(); return _description; }
+    std::string name() const { lazy_load(); return _name; }
+    std::string description() const { lazy_load(); return _description; }
+
+    bool operator<(Category const &other) const
+    {
+        return _id < other._id;
+    }
 
     void name(std::string const &name)
     {
@@ -267,8 +272,9 @@ public:
             "(SELECT "
                 "DAY(items.`create`) AS `day`, "
                 "SUM(`items`.`amount`) AS `expensesum`, "
-                "`planned`.`amount` AS `plannedsum`, "
-                "MAX(items.`create`) AS `create`, "
+                "IFNULL(`planned`.`amount`,0) AS `plannedsum`, "
+                //"MAX(items.`create`) AS `create`, "
+                "GREATEST(MAX(items.`create`), IFNULL(planned.`create`, items.`create`)) as `create`, "
                 "items.categoryid "
                 "FROM items "
                 "LEFT JOIN "
@@ -286,13 +292,13 @@ public:
             " union "
             "SELECT " 
                 "DAY(planitems.`create`) AS `day`, "
-                "`expenses`.`amount` AS `expensesum`, "
+                "IFNULL(`expenses`.`amount`, 0) AS `expensesum`, "
                 "SUM(`planitems`.`amount`) AS `plannedsum`, "
-                "MAX(planitems.`create`) as `create`, "
+                "GREATEST(MAX(planitems.`create`), IFNULL(expenses.`create`, planitems.`create`)) as `create`, "
                 "planitems.categoryid "
                 "FROM planitems "
                 "LEFT JOIN "
-                    "(SELECT SUM(`amount`) AS amount, `create`, categoryid FROM items "
+                    "(SELECT SUM(items.`amount`) AS amount, items.`create`, items.categoryid FROM items "
                     "WHERE userid = ? AND year(items.`create`) = year(CURRENT_DATE - INTERVAL ? MONTH) "
                     "AND month(items.`create`) = month(CURRENT_DATE - INTERVAL ? MONTH) "
                     "GROUP BY `categoryid`, DAY(items.`create`)) expenses "
@@ -300,7 +306,8 @@ public:
                     "AND planitems.`categoryid` = expenses.`categoryid` "
                 "WHERE `planitems`.userid = ? AND year(planitems.`create`) = year(CURRENT_DATE - INTERVAL ? MONTH) "
                 "AND month(planitems.`create`) = month(CURRENT_DATE - INTERVAL ? MONTH) "
-                "GROUP BY planitems.`categoryid`, DAY(planitems.`create`)) dailysum "
+                "GROUP BY planitems.`categoryid`, DAY(planitems.`create`) "
+            ") dailysum "
             "LEFT JOIN `categories` ON `categories`.`id` = `dailysum`.`categoryid` ",
             [&database, &data] (Results &res) {
                 data.push_back(std::make_pair(
@@ -375,7 +382,7 @@ private:
                 });
     }
 
-    void lazy_load()
+    void lazy_load() const
     {
         if (_loaded) return;
         // TODO
@@ -385,15 +392,15 @@ private:
     Database *_database;
     bool _invalid;
     bool _detached;
-    bool _loaded;
+    mutable bool _loaded;
     bool _changed;
 
     uint64_t _id;
     time_t _create;
     time_t _modify;
     uint64_t _userid;
-    std::string _name;
-    std::string _description;
+    mutable std::string _name;
+    mutable std::string _description;
 };
 
 #endif

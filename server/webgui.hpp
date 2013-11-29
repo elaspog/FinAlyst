@@ -2,6 +2,8 @@
 #define WEBGUI_HPP_INCLUDED
 
 #include <iostream>
+#include <algorithm>
+#include <time.h>
 
 #include "session.hpp"
 #include "database.hpp"
@@ -21,6 +23,7 @@ namespace WebGUI
         fcout << "<a href=\"?q=category\">Category</a>";
         fcout << "<a href=\"?q=item\">Items</a>";
         fcout << "<a href=\"?q=plan\">Plan</a>";
+        fcout << "<a href=\"?q=daily_overview\">Overview</a>";
         fcout << "<a href=\"?q=diagram\">Diagrams</a>";
         fcout << "<a href=\"?q=logout\">Logout</a> ";
         fcout << "</div>";
@@ -360,6 +363,62 @@ namespace WebGUI
         }
     }
 
+    void daily_overview(Database &database, Session &session,
+            Request &request, std::ostream &fcout)
+    {
+        (void)request;
+        fcout << "<h2>Daily overview</h2>";
+        std::vector<std::pair<Category, Category::BalanceData>> data;
+        std::map<Category, std::vector<Category::BalanceData>> sorted;
+        Category::daily_overview(database, session.user(), data);
+        for (auto &d : data) sorted[d.first].push_back(d.second);
+        /*for (auto &d : sorted)
+        {
+            std::sort(d.second.begin(), d.second.end(),
+                [](const Category::BalanceData &a, const Category::BalanceData &b) {
+                     return a.interval > b.interval; });
+        }*/
+        fcout << "<table><tr><th>Day</th>";
+        for (auto &d : sorted) fcout << "<th>" << d.first.name() << "</th>";
+        fcout << "</tr>";
+       
+        // Get last day of month
+        time_t t;
+        time(&t);
+        tm bt;
+        localtime_r(&t, &bt);
+        bt.tm_mon++;
+        bt.tm_mday = 0;
+        mktime(&bt);
+        
+        for (int i = bt.tm_mday; i > 0; --i)
+        {
+            fcout << "<tr><td>" << i << "</td>";
+            for (auto &d : sorted)
+            {
+                bool gotbalance = false;
+                for (auto &b : d.second)
+                {
+                    if ((int)b.interval == i)
+                    {
+                        gotbalance = true;
+                        fcout << "<td title=\"" << b.cumulative << "\"><p class=\"expense\">";
+                        if (b.expensesum == 0) fcout << "&nbsp;";
+                        else fcout << b.expensesum;
+                        fcout << "</p><p class=\"plan\">";
+                        if (b.plannedsum == 0) fcout << "&nbsp;";
+                        else fcout << b.plannedsum;
+                        fcout << "</p></td>";
+                        break;
+                    }
+                }
+                if (!gotbalance) fcout << "<td><p class=\"expense\">&nbsp;</p><p class=\"plan\">&nbsp;</p></td>";
+            }
+            fcout << "</tr>";
+        }
+        fcout << "</table>";
+    }
+
     void error404(OptsMap const &config,
             Request &request, std::ostream &fcout)
     {
@@ -421,6 +480,8 @@ namespace WebGUI
             item_destroy(database, session, request, fcout);
         else if (request.query() == "planitem_destroy")
             planitem_destroy(database, session, request, fcout);
+        else if (request.query() == "daily_overview")
+            daily_overview(database, session, request, fcout);
         else error404(config, request, fcout); 
 
         if (request.type() == RequestType::Get)
