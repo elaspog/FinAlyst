@@ -100,6 +100,19 @@ inline MYSQL_BIND mbind_fixed(char const *str, unsigned long &size, size_t fixed
     return bind;
 }
 
+inline MYSQL_BIND mbind(bool const &num, unsigned long &size)
+{
+    size = sizeof(num);
+    MYSQL_BIND bind;
+    memset(&bind, 0, sizeof(bind));
+    bind.buffer_type = MYSQL_TYPE_TINY;
+    bind.buffer = (void*)&num;
+    bind.buffer_length = size;
+    bind.length = &size;
+    bind.is_null = 0;
+    return bind;
+}
+
 inline MYSQL_BIND mbind(uint64_t const &num, unsigned long &size)
 {
     size = sizeof(num);

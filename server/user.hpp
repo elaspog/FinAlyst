@@ -117,6 +117,7 @@ public:
 
     bool authenticate(std::string const &password) const
     {
+        if (!_active) return false;
         // Additional protection agains timing attacks
         std::this_thread::sleep_for(std::chrono::milliseconds(rand()%100));
         if (_invalid) return false;
@@ -140,7 +141,7 @@ public:
         typedef std::tuple<uint64_t> Params;
         Params params = std::make_tuple(id);
         return query_uniqe(database, params,
-                "SELECT `id`, `create`, `modify`, `name`, `money`, `passdigest`, `passsalt` "
+                "SELECT `id`, `create`, `modify`, `name`, `money`, `active`, `passdigest`, `passsalt` "
                 " FROM `users` WHERE id = ?");
     }
 
@@ -149,7 +150,7 @@ public:
         typedef std::tuple<FixedString<64>> Params;
         Params params = std::make_tuple<FixedString<64>>(name);
         return query_uniqe(database, params,
-                "SELECT `id`, `create`, `modify`, `name`, `money`, `passdigest`, `passsalt` "
+                "SELECT `id`, `create`, `modify`, `name`, `money`, `active`, `passdigest`, `passsalt` "
                 " FROM `users` WHERE name = ?");
     }
 
@@ -158,18 +159,18 @@ public:
         typedef std::tuple<> Params;
         Params params;
         query(database, params, users,
-                "SELECT `id`, `create`, `modify`, `name`, `money`, `passdigest`, `passsalt` "
+                "SELECT `id`, `create`, `modify`, `name`, `money`, `active`, `passdigest`, `passsalt` "
                 " FROM `users`");
     }
 
     static bool table_exists(Database &database) { return database.table_exists("users"); }
 
 private:
-    User(Database &database, uint64_t id,
-            time_t create, time_t modify, std::string const &name, std::string const &money,
+    User(Database &database, uint64_t id, time_t create, time_t modify,
+            std::string const &name, std::string const &money, bool active,
             passtype const *passdigest, passtype const *passsalt) :
         _database(&database), _invalid(false), _detached(false), _loaded(true),
-        _id(id), _create(create), _modify(modify), _name(name), _money(money)
+        _id(id), _create(create), _modify(modify), _name(name), _money(money), _active(active)
     {
         memcpy(_passdigest, passdigest, sizeof(_passdigest));
         memcpy(_passsalt, passsalt, sizeof(_passsalt));
@@ -218,7 +219,7 @@ private:
             std::string const &query)
     {
         typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
-                FixedString<64>, FixedString<10>,
+                FixedString<64>, FixedString<10>, bool,
                 FixedString<128>, FixedString<128>> Results;
         User user;
         database.query<Params, Results>(params, query,
@@ -230,8 +231,9 @@ private:
                         mysql_to_time(std::get<2>(res)),
                         std::get<3>(res).to_string(),
                         std::get<4>(res).to_string(),
-                        (passtype*)std::get<5>(res).c_str(),
-                        (passtype*)std::get<6>(res).c_str());
+                        std::get<5>(res),
+                        (passtype*)std::get<6>(res).c_str(),
+                        (passtype*)std::get<7>(res).c_str());
                 });
         return user;
     }
@@ -241,7 +243,7 @@ private:
             std::vector<User> &users, std::string const &query)
     {
         typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
-                FixedString<64>, FixedString<10>,
+                FixedString<64>, FixedString<10>, bool,
                 FixedString<128>, FixedString<128>> Results;
         database.query<Params, Results>(params, query,
                 [&database, &users] (Results &res) {
@@ -251,8 +253,9 @@ private:
                         mysql_to_time(std::get<2>(res)),
                         std::get<3>(res).c_str(),
                         std::get<4>(res).c_str(),
-                        (passtype*)std::get<5>(res).c_str(),
-                        (passtype*)std::get<6>(res).c_str()));
+                        std::get<5>(res),
+                        (passtype*)std::get<6>(res).c_str(),
+                        (passtype*)std::get<7>(res).c_str()));
                 });
     }
 
@@ -273,6 +276,7 @@ private:
     time_t _modify;
     std::string _name;
     std::string _money;
+    bool _active;
     passtype _passdigest;
     passtype _passsalt;
 };
