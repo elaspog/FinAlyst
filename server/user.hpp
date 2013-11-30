@@ -31,7 +31,7 @@ public:
     User(Database &database,
             std::string const &name, std::string const &password) :
         _database(&database), _invalid(false), _detached(true),
-        _name(name)
+        _name(name), _money(u8"\u8364")
     {
         reset_password(password);
         time(&_create);
@@ -78,22 +78,23 @@ public:
         if (_detached)
         {
             MYSQL_STMT* stmt = _database->statement(
-                    "INSERT INTO `users` (`create`, `modify`, `name`, `passdigest`, `passsalt`) "
-                    "VALUES (?, ?, ?, ?, ?)");
+                    "INSERT INTO `users` (`create`, `modify`, `name`, `money`, `passdigest`, `passsalt`) "
+                    "VALUES (?, ?, ?, ?, ?, ?)");
             if (stmt == NULL)
                 throw std::logic_error("Can't create statement");
-            unsigned long size[5];
+            unsigned long size[6];
             MYSQL_TIME create;
             MYSQL_TIME modify;
             time_to_mysql(_create, create);
             time_to_mysql(_modify, modify);
 
-            MYSQL_BIND param[5] = {
+            MYSQL_BIND param[6] = {
                 mbind(create, size[0]),
                 mbind(modify, size[1]),
                 mbind(_name, size[2]),
+                mbind(_money, size[3]),
                 mbind_fixed((char*)_passdigest, size[3], sizeof(_passdigest)),
-                mbind_fixed((char*)_passsalt, size[4], sizeof(_passsalt)),
+                mbind_fixed((char*)_passsalt, size[5], sizeof(_passsalt)),
             };
             static_assert(sizeof(size)/sizeof(size[0]) ==
                 sizeof(param)/sizeof(param[0]),
@@ -125,9 +126,6 @@ public:
         std::string s1((char*)_passdigest, sizeof(passtype));
         std::string s2((char*)passdigest, sizeof(passtype));
 
-        /*LOG_DEBUG("Expected: %s", s1.c_str());
-        LOG_DEBUG("Hash got: %s", s2.c_str());*/
-
         // Compare passwords (protected against timeing attack)
         unsigned char same = 0;
         for (unsigned i = 0; i < sizeof(_passdigest); ++i)
@@ -142,7 +140,7 @@ public:
         typedef std::tuple<uint64_t> Params;
         Params params = std::make_tuple(id);
         return query_uniqe(database, params,
-                "SELECT `id`, `create`, `modify`, `name`, `passdigest`, `passsalt` "
+                "SELECT `id`, `create`, `modify`, `name`, `money`, `passdigest`, `passsalt` "
                 " FROM `users` WHERE id = ?");
     }
 
@@ -151,7 +149,7 @@ public:
         typedef std::tuple<FixedString<64>> Params;
         Params params = std::make_tuple<FixedString<64>>(name);
         return query_uniqe(database, params,
-                "SELECT `id`, `create`, `modify`, `name`, `passdigest`, `passsalt` "
+                "SELECT `id`, `create`, `modify`, `name`, `money`, `passdigest`, `passsalt` "
                 " FROM `users` WHERE name = ?");
     }
 
@@ -160,7 +158,7 @@ public:
         typedef std::tuple<> Params;
         Params params;
         query(database, params, users,
-                "SELECT `id`, `create`, `modify`, `name`, `passdigest`, `passsalt` "
+                "SELECT `id`, `create`, `modify`, `name`, `money`, `passdigest`, `passsalt` "
                 " FROM `users`");
     }
 
@@ -168,10 +166,10 @@ public:
 
 private:
     User(Database &database, uint64_t id,
-            time_t create, time_t modify, std::string name,
-            passtype const *passdigest, passtype *passsalt) :
+            time_t create, time_t modify, std::string const &name, std::string const &money,
+            passtype const *passdigest, passtype const *passsalt) :
         _database(&database), _invalid(false), _detached(false), _loaded(true),
-        _id(id), _create(create), _modify(modify), _name(name)
+        _id(id), _create(create), _modify(modify), _name(name), _money(money)
     {
         memcpy(_passdigest, passdigest, sizeof(_passdigest));
         memcpy(_passsalt, passsalt, sizeof(_passsalt));
@@ -211,10 +209,7 @@ private:
             std::string c((char*)passsalt_+i*sizeof(randgen_ret_type)*2,
                     sizeof(randgen_ret_type)*2);
             binsalt[i] = strtoul(c.c_str(), NULL, 16);
-            //LOG_DEBUG("%s %08X %u", c.c_str(), binsalt[i], binsalt[i]);
         }
-        /*for (unsigned i = 0; i < sizeof(binsalt); ++i)
-            LOG_DEBUG("%02X", ((unsigned char*)binsalt)[i]);*/
         digest_pass(password_, (void*)binsalt, sizeof(binsalt), passdigest_);
     }
 
@@ -223,7 +218,7 @@ private:
             std::string const &query)
     {
         typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
-                FixedString<64>,
+                FixedString<64>, FixedString<10>,
                 FixedString<128>, FixedString<128>> Results;
         User user;
         database.query<Params, Results>(params, query,
@@ -234,8 +229,9 @@ private:
                         mysql_to_time(std::get<1>(res)),
                         mysql_to_time(std::get<2>(res)),
                         std::get<3>(res).to_string(),
-                        (passtype*)std::get<4>(res).c_str(),
-                        (passtype*)std::get<5>(res).c_str());
+                        std::get<4>(res).to_string(),
+                        (passtype*)std::get<5>(res).c_str(),
+                        (passtype*)std::get<6>(res).c_str());
                 });
         return user;
     }
@@ -245,7 +241,7 @@ private:
             std::vector<User> &users, std::string const &query)
     {
         typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
-                FixedString<64>,
+                FixedString<64>, FixedString<10>,
                 FixedString<128>, FixedString<128>> Results;
         database.query<Params, Results>(params, query,
                 [&database, &users] (Results &res) {
@@ -254,8 +250,9 @@ private:
                         mysql_to_time(std::get<1>(res)),
                         mysql_to_time(std::get<2>(res)),
                         std::get<3>(res).c_str(),
-                        (passtype*)std::get<4>(res).c_str(),
-                        (passtype*)std::get<5>(res).c_str()));
+                        std::get<4>(res).c_str(),
+                        (passtype*)std::get<5>(res).c_str(),
+                        (passtype*)std::get<6>(res).c_str()));
                 });
     }
 
@@ -275,6 +272,7 @@ private:
     time_t _create;
     time_t _modify;
     std::string _name;
+    std::string _money;
     passtype _passdigest;
     passtype _passsalt;
 };
