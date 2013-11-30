@@ -37,6 +37,32 @@ body {
     box-shadow: 0px 1px 3px black;
 }
 
+div#login {
+    margin: auto;
+    width: 300px;
+    margin-top: 100px;
+    padding: 30px;
+    border: 1px solid black;
+    box-shadow: 0px 1px 3px black;
+    background-color: #AACCFF;
+}
+
+div#login table {
+    border: none;
+    box-shadow: none;
+}
+
+div#login tr, div#login td {
+    border: none;
+    background-color: transparent;
+    color: black;
+}
+
+
+h1#finalyst, h2#login {
+    margin: 5px;
+}
+
 div.content {
     padding: 10px;
 }

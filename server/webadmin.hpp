@@ -17,10 +17,10 @@ namespace WebAdmin
     {
         fcout << "<div id=\"menu\">";
         fcout <<     "<a href=\"?q=main\">Main</a>";
+        fcout <<     "<a href=\"?q=users\">Users</a>";
         fcout <<     "<a href=\"?q=cpuinfo\">Cpu info</a>";
         fcout <<     "<a href=\"?q=meminfo\">Mem info</a>";
         fcout <<     "<a href=\"?q=hddstat\">HDD stat</a>";
-        fcout <<     "<a href=\"?q=newuser\">New user</a>";
         fcout <<     "<a href=\"?q=webserviceapi\">Webservice API</a>";
         fcout <<     "<a href=\"?q=changelog\">Changelog</a>";
         fcout <<     "<a href=\"?q=logout\">Logout</a> ";
@@ -29,6 +29,17 @@ namespace WebAdmin
 
     void main_page(Database &database, Request &request, std::ostream &fcout)
     {
+        // TODO
+    }
+
+    void users_page(Database &database,
+            OptsMap const &config, std::ostream &fcout)
+    {
+        auto it = config.find("asset-dir");
+        std::string assetpath;
+        if (it != config.end()) assetpath = it->second;
+        fcout << "<a href=\"?q=newuser\"><img alt=\"add user\" src=\""
+            << assetpath << "/useradd.png\" width=\"32\"></a>";
         std::vector<User> users;
         User::find_all(database, users);
 
@@ -39,12 +50,11 @@ namespace WebAdmin
             fcout << user.name() << "</td>";
             // TODO: create date
             fcout << "<td>" << user.create() << "</td>";
-            fcout << "<td><a href=\"finance?useredit&id=" << user.id() << "\">Edit</a></td>";
+            fcout << "<td><a href=\"finance?useredit&id=" << user.id() << "\">"
+                << "<img alt=\"edit\" width=\"32\" src=\"" << assetpath << "/edit.png\" ></a></td>";
             fcout << "</tr>"<< std::endl;
         }
         fcout << "</table>";
-
-        print_environment(fcout, request);
     }
 
     void newuser_page(Database &database, Request &request,
@@ -124,6 +134,8 @@ namespace WebAdmin
 
             if (query == "main")
                 main_page(database, request, fcout);
+            else if (query == "users")
+                users_page(database, config, fcout);
             else if (query == "newuser")
                 newuser_page(database, request, fcout, fcin);
             else if (query == "cpuinfo")

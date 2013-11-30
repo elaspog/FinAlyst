@@ -31,9 +31,7 @@ namespace WebGUI
 
     void main_page(std::ostream &fcout)
     {
-        fcout << "<h2>TODO</h2>";
-
-        fcout << "</div>";
+        fcout << "<h2>Üdvözül a FinAlyst</h2>";
         footer(fcout);
     }
 

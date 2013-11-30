@@ -164,13 +164,15 @@ void login_page(OptsMap const &config, Database &database,
 
     header(fcout, config, "Login");
     if (login_failed) fcout << "</span class=\"login_failed\">Login failed</span>";
-    fcout << "<h1>Login</h1>";
-    fcout << "<form name=\"login_form\" method=\"post\">";
-    fcout << "Username: <input name=\"username\">";
-    fcout << "Password: <input type=\"password\" name=\"password\">";
-    fcout << "<input type=\"submit\" value=\"Login\">";
-    fcout << "</form>";
-    print_environment(fcout, request);
+    fcout << "<div id=\"login\">";
+    fcout <<    "<h1 id=\"finalyst\">FinAlyst</h1>";
+    fcout <<    "<h2 id=\"login\">Login</h2>";
+    fcout <<    "<form name=\"login_form\" method=\"post\"><table>";
+    fcout <<        "<tr><td>Username:</td><td><input name=\"username\"></td></tr>";
+    fcout <<        "<tr><td>Password:</td><td><input type=\"password\" name=\"password\"></td></tr>";
+    fcout <<        "</table><input type=\"submit\" value=\"Login\">";
+    fcout <<    "</form>";
+    fcout << "</div>";
     
     footer(fcout);
 }
