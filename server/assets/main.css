@@ -110,3 +110,41 @@ td p.expense {
 td p.plan {
     color: blue;
 }
+
+div.chart-wrapper {
+    padding: 30px;
+    background-color: #AACCFF;
+    overflow: scroll;
+    overflow-y:hidden;
+    border: 2px solid #88AACC;
+    border-radius: 3px;
+}
+
+div.chart {
+    position: relative;
+}
+
+div.chart div {
+    position: absolute;
+    color: white;
+    text-shadow: 1px 1px 3px black;
+}
+
+div.chart .expense {
+    background-color: #EE4411;
+    border: 1px solid #CC3300;
+    border-radius: 3px;
+    box-shadow: 1px 1px 3px black;
+}
+
+div.chart .plan {
+    background-color: #2255EE;
+    border: 1px solid #0033CC;
+    border-radius: 3px;
+    box-shadow: 1px 1px 1px black;
+}
+
+div.chart div.label {
+    text-shadow: 1px 1px 2px black;
+    font-size: 30px;
+}

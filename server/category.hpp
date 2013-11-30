@@ -187,7 +187,7 @@ public:
     enum class StatGranulation { weekly, monthly, yearly };
 
     void balance_stats(std::vector<BalanceData> &data,
-            StatGranulation granulation, unsigned year = 0)
+            StatGranulation granulation, unsigned year)
     {
         std::string gran;
         switch (granulation)
@@ -210,7 +210,9 @@ public:
         typedef std::tuple<uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t> Params;
         Params params = std::make_tuple(_id, year, _id, year, _id, year, _id, year);
         _database->query<Params, Results>(params,
-            "SELECT "+gran+"(items.`create`) AS `interval`, SUM(`items`.`amount`) AS `expensesum`, `planned`.`amount` AS `plannedsum` "
+            "SELECT "+gran+"(items.`create`) AS `interval`, "
+                "IFNULL(SUM(`items`.`amount`), 0) AS `expensesum`, "
+                "IFNULL(`planned`.`amount`, 0) AS `plannedsum` "
                 "FROM items "
                 "LEFT JOIN "
                     "(SELECT SUM(`amount`) AS amount, `create` FROM planitems "
@@ -220,7 +222,9 @@ public:
                 "WHERE items.`categoryid` = ? AND year(items.`create`) = ? "
                 "GROUP BY "+gran+"(items.`create`) "
             " union "
-            "SELECT "+gran+"(planitems.`create`) AS `interval`, `expenses`.`amount` AS `expensesum`, SUM(`planitems`.`amount`) AS `plannedsum` "
+            "SELECT "+gran+"(planitems.`create`) AS `interval`, "
+                "IFNULL(`expenses`.`amount`, 0) AS `expensesum`, "
+                "IFNULL(SUM(`planitems`.`amount`), 0) AS `plannedsum` "
                 "FROM planitems "
                 "LEFT JOIN "
                     "(SELECT SUM(`amount`) AS amount, `create` FROM items "

@@ -370,11 +370,54 @@ namespace WebGUI
         fcout << "<h2>Daily overview</h2>";
         std::vector<Category::BalanceData> data;
         Category c = Category::find(database, 46);
-        c.balance_stats(data, Category::StatGranulation::weekly);
-        /*for (auto &b : data)
+        c.balance_stats(data, Category::StatGranulation::weekly, 2013);
+        fcout << "<div class=\"chart-wrapper\"><div class=\"chart\" style=\"height:500px;width:" << data.size()*70<< "px\">";
+        unsigned left = 0;
+        int last_month = -1;
+        time_t t;
+        time(&t);
+        auto max_expense = std::max_element(data.begin(), data.end(), 
+                [](Category::BalanceData const &a, Category::BalanceData const &b) {
+                    return a.expensesum < b.expensesum;
+                });
+        auto max_plan = std::max_element(data.begin(), data.end(), 
+                [](Category::BalanceData const &a, Category::BalanceData const &b) {
+                    return a.plannedsum < b.plannedsum;
+                });
+        unsigned max = std::max(max_expense->expensesum, max_plan->plannedsum);
+        for (auto &b : data)
         {
-            //
-        }*/
+            int height = (double)b.expensesum/max*450;
+            fcout << "<div class=\"expense\" style=\"z-index:1;left:" << left
+                << "px;bottom:50px;height:" << height << "px;width:30px;\">";
+            if (height > 50) fcout
+                << "<div style=\"height:30px;line-height:30px;transform-origin: 0% 0%; bottom: -25px; transform: rotate(-90deg);\">"
+                << b.expensesum << "</div>";
+            fcout << "</div>";
+            height = (double)b.plannedsum/max*450;
+            fcout << "<div class=\"plan\" style=\"left:" << left+25
+                << "px;bottom:60px;height:" << height << "px;width:30px;\">";
+            if (height > 50) fcout
+                << "<div style=\"height:30px;line-height:30px;transform-origin: 0% 0%; bottom: -25px; transform: rotate(-90deg);\">"
+                << b.plannedsum << "</div>";
+            fcout << "</div>";
+            left += 70;
+            // Calculate month
+            tm bt;
+            localtime_r(&t, &bt);
+            bt.tm_mon = 0;
+            bt.tm_mday = b.interval * 7;
+            mktime(&bt);
+            char buffer[128];
+            if (bt.tm_mon > last_month)
+            {
+                strftime(buffer, sizeof(buffer), "%B", &bt);
+                last_month = bt.tm_mon;
+                fcout << "<div class=\"label\" style=\"left:" << left+20
+                << "px;bottom:0px;height:50px;line-height:50px\">" << buffer << "</div>";
+            }
+        }
+        fcout << "</div></div>";
     }
 
     void daily_overview(Database &database, Session &session,
@@ -488,6 +531,8 @@ namespace WebGUI
             item_destroy(database, session, request, fcout);
         else if (request.query() == "planitem_destroy")
             planitem_destroy(database, session, request, fcout);
+        else if (request.query() == "diagram")
+            balance_stats(database, session, request, fcout);
         else if (request.query() == "daily_overview")
             daily_overview(database, session, request, fcout);
         else error404(config, request, fcout); 
