@@ -214,7 +214,7 @@ namespace WebService
             fcout << ",\n";
             fcout << "\t\t\"interval\": " << p.second.interval << ",\n";
             fcout << "\t\t\"expensesum\": " << p.second.expensesum << ",\n";
-            fcout << "\t\t\"plannedsum\": " << p.second.plannedsum << "\n";
+            fcout << "\t\t\"plannedsum\": " << p.second.plannedsum << ",\n";
             fcout << "\t\t\"cumulative\": " << p.second.cumulative << "\n";
             fcout << "\t}";
             if (count < data.size()) fcout << ",";
