@@ -67,8 +67,6 @@ Group expenses and planned amounts daily and calculate balance.
 **Request arguments:**
 
 || **Key**        || **Type**     || **Description**                                                                  ||
-|| categoryid     || integer      || plan item id                                                                     ||
-|| granulation    || string       || week/month/year                                                                  ||
 || relative_month || integer      || unsigned value, search limited this month (optional) (default: 0, current month) ||
 
 **Result data:**
