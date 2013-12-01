@@ -36,14 +36,45 @@ namespace WebGUI
     }
 
     void item_page(Database &database, Session &session,
-            Request &request, std::ostream &fcout)
+            Request &request, OptsMap const &config, std::ostream &fcout)
     {
-        // TODO: handle limit
-        (void)request;
-        fcout << "<a href=\"?q=item_add\">Add item</a>";
-        fcout << "<h2>Item</h2>";
+        auto it = config.find("asset-dir");
+        std::string assetpath;
+        if (it != config.end()) assetpath = it->second;
+
+        std::string pagestr = request.get("page");
+        uint64_t page;
+        if (!parse_unsigned(pagestr, page)) page = 0;
+        
+        fcout << "<div class=\"date\"><span class=\"arrow\">";
+        fcout << "<a href=\"?q=item&page="
+            << page + 1
+            << "\"><img alt=\"left\" width=\"32\" src=\""
+            << assetpath << "/arrow-left.png\"></img></a>";
+        fcout << "</span>";
+
+        fcout << "<span style=\"height: 32px\">Item</span>";
+
+        if (page > 0)
+        {
+            fcout << "<span class=\"arrow\">";
+            fcout << "<a href=\"?q=item&page="
+                << page - 1
+                << "\"><img alt=\"right\" width=\"32\" src=\""
+                << assetpath << "/arrow-right.png\"></img></a>";
+            fcout << "</span>";
+
+            fcout << "<span class=\"arrow\">";
+            fcout << "<a href=\"?q=item&page=0"
+                << "\"><img alt=\"right\" width=\"32\" src=\""
+                << assetpath << "/arrow-right-double.png\"></img></a>";
+        }
+        fcout << "</span></div>";
+
+        fcout << "<a href=\"?q=item_add\"><img alt=\"add item\" src=\""
+            << assetpath << "/add.png\" width=\"32\">Add item</a>";
         std::vector<std::pair<Category, Item>> data;
-        Item::find_all_with_category(database, session.user(), data);
+        Item::find_all_with_category(database, session.user(), data, 30, page);
         fcout << "<table><tr><th>Dátum</th><th>Category</th><th>Amount</th><th>Description</th><th></th></tr>";
         for (auto &item : data)
         {
@@ -642,7 +673,7 @@ namespace WebGUI
         if (request.query().empty() || request.query() == "main")
             main_page(fcout);
         else if (request.query() == "item")
-            item_page(database, session, request, fcout);
+            item_page(database, session, request, config, fcout);
         else if (request.query() == "item_add")
             item_add(database, session, request, fcout);
         else if (request.query() == "item_edit")

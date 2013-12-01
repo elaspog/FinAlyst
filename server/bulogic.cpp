@@ -228,13 +228,6 @@ namespace BusinessLogic
         }
     }
 
-    /*void balance(Database &database, Session &session, Request &request,
-            std::vector<std::pair<Category, Category::BalanceData>> &data)
-    {
-        (void)session; (void)request;
-        Category::balance(database, data);
-    }*/
-
     void balance_stats(Database &database, Session &session, Request &request,
             std::vector<Category::BalanceData> &data)
     {

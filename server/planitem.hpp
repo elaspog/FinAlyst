@@ -167,18 +167,21 @@ public:
         {
             query(database, params, items,
                 "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
-                    " FROM `planitems` WHERE userid = ? LIMIT ? OFFSET ? ORDER BY `planitems`.`create` DESC");
+                    " FROM `planitems` WHERE userid = ? ORDER BY `planitems`.`create` DESC LIMIT ? OFFSET ?");
         }
     }
 
     static void find_all_with_category(Database &database, User const &user,
-            std::vector<std::pair<Category, PlanItem>> &data)
+            std::vector<std::pair<Category, PlanItem>> &data,
+            unsigned limit=0, unsigned offset=0)
     {
-        typedef std::tuple<uint64_t> Params;
-        Params params = std::make_tuple(user.id());
+        typedef std::tuple<uint64_t, uint64_t, uint64_t> Params;
+        Params params = std::make_tuple(user.id(), limit, offset);
         typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
                 uint64_t, uint64_t, uint64_t, FixedString<256>,
                 MYSQL_TIME, MYSQL_TIME, FixedString<128>, FixedString<256>> Results;
+        std::string sqllimit;
+        if (limit > 0) sqllimit = " LIMIT ? OFFSET ? ";
         database.query<Params, Results>(params,
                     "SELECT `planitems`.`id`, `planitems`.`create`, `planitems`.`modify`, `planitems`.`userid`, "
                         "`planitems`.`categoryid`, `planitems`.`amount`, `planitems`.`description`, "
@@ -186,7 +189,8 @@ public:
                         "`categories`.`name`, `categories`.`description` "
                     "FROM `planitems` LEFT JOIN `categories` ON `categoryid` = `categories`.`id` "
                     "WHERE `planitems`.`userid` = ? "
-                    " ORDER BY `planitems`.`create` DESC ",
+                    "ORDER BY `planitems`.`create` DESC "
+                    + sqllimit,
                 [&database, &data] (Results &res) {
                     data.push_back(std::make_pair(
                             Category(database,

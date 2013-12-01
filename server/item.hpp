@@ -167,18 +167,21 @@ public:
         {
             query(database, params, items,
                 "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
-                    " FROM `items` WHERE userid = ? LIMIT ? OFFSET ? ORDER BY `items`.`create` DESC");
+                    " FROM `items` WHERE userid = ? ORDER BY `items`.`create` DESC LIMIT ? OFFSET ?");
         }
     }
 
     static void find_all_with_category(Database &database, User const &user,
-            std::vector<std::pair<Category, Item>> &data)
+            std::vector<std::pair<Category, Item>> &data,
+            unsigned limit=0, unsigned offset=0)
     {
-        typedef std::tuple<uint64_t> Params;
-        Params params = std::make_tuple(user.id());
+        typedef std::tuple<uint64_t, uint64_t, uint64_t> Params;
+        Params params = std::make_tuple(user.id(), limit, offset);
         typedef std::tuple<uint64_t, MYSQL_TIME, MYSQL_TIME,
                 uint64_t, uint64_t, uint64_t, FixedString<256>,
                 MYSQL_TIME, MYSQL_TIME, FixedString<128>, FixedString<256>> Results;
+        std::string sqllimit;
+        if (limit > 0) sqllimit = " LIMIT ? OFFSET ? ";
         database.query<Params, Results>(params,
                     "SELECT `items`.`id`, `items`.`create`, `items`.`modify`, `items`.`userid`, "
                         "`items`.`categoryid`, `items`.`amount`, `items`.`description`, "
@@ -186,7 +189,8 @@ public:
                         "`categories`.`name`, `categories`.`description` "
                     "FROM `items` LEFT JOIN `categories` ON `categoryid` = `categories`.`id` "
                     "WHERE `items`.`userid` = ? "
-                    "ORDER BY `items`.`create` DESC",
+                    "ORDER BY `items`.`create` DESC"
+                    + sqllimit,
                 [&database, &data] (Results &res) {
                     data.push_back(std::make_pair(
                             Category(database,
