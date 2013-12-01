@@ -83,7 +83,7 @@ Group expenses and planned amounts daily and calculate balance.
 || cumulative   || integer  || balance of planned amount and expenses ||
 
 **Example URL:**
-http://myfinalyst/fcgi-bin/finalyst?q=webservice/daily_overview?relative_month=1
+http://myfinalyst/fcgi-bin/finalyst?q=webservice/daily\_overview?relative\_month=1
 
 **JSON example:**
 

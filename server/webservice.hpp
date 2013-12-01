@@ -264,7 +264,7 @@ namespace WebService
             else
             {
                 LOG_MESSAGE_WARN("Webservice error: 404 page not found");
-                fcout << "\t\"data\": null\n";
+                fcout << "\t\"data\": null,\n";
                 status = 404;
             }
             if (status == 200)
