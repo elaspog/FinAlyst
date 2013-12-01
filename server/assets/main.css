@@ -65,6 +65,8 @@ h1#finalyst, h2#login {
 
 div.content {
     padding: 10px;
+    padding-left: 30px;
+    padding-right: 30px;
 }
 
 div.markdown_content {
@@ -173,4 +175,21 @@ div.chart .plan {
 div.chart div.label {
     text-shadow: 1px 1px 2px black;
     font-size: 30px;
+}
+
+div.date {
+    margin-bottom: 20px;
+    font-weight: 900;
+    font-size: 22px;
+    height: 32px;
+}
+
+div.date span {
+    float: left;
+}
+
+div.date span.arrow {
+    height: 32px;
+    width: 32px;
+    display: block;
 }

@@ -11,8 +11,6 @@
 
 #include "logger.hpp"
 #include "database.hpp"
-#include "session_mem.hpp"
-#include "session_memcached.hpp"
 #include "user.hpp"
 #include "rand.hpp"
 #include "request.hpp"
@@ -20,6 +18,12 @@
 #include "webadmin.hpp"
 #include "webservice.hpp"
 #include "webgui.hpp"
+
+#include "session_mem.hpp"
+
+#ifdef USE_MEMCACHED
+#include "session_memcached.hpp"
+#endif
 
 using namespace std;
 
@@ -108,9 +112,19 @@ int main(void) {
         error_message = database.error_message();
     }
     
-    unique_ptr<SessionManager> sessionman =
-        //unique_ptr<SessionManager>(new MemorySessionManager());
-        unique_ptr<SessionManager>(new MemcachedSessionManager(database, "--SERVER=localhost:11211"));
+    unique_ptr<SessionManager> sessionman = nullptr;
+    {
+#ifdef USE_MEMCACHED
+        std::string memcached_opts("--SERVER=localhost:11211");
+        if (config.find("memcached_opts") != config.end())
+            memcached_opts = config["memcached_opts"];
+        if (config["session"] != "memory")
+        {
+            sessionman = unique_ptr<SessionManager>(new MemcachedSessionManager(database, memcached_opts));
+        } else
+#endif
+        sessionman = unique_ptr<SessionManager>(new MemorySessionManager(database));
+    }
 
     // Accept requests
     while (FCGX_Accept_r(&fcgi_request) == 0) {

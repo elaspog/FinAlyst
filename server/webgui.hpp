@@ -44,10 +44,16 @@ namespace WebGUI
         fcout << "<h2>Item</h2>";
         std::vector<std::pair<Category, Item>> data;
         Item::find_all_with_category(database, session.user(), data);
-        fcout << "<table><tr><th>Category</th><th>Amount</th><th>Description</th><th></th></tr>";
+        fcout << "<table><tr><th>Dátum</th><th>Category</th><th>Amount</th><th>Description</th><th></th></tr>";
         for (auto &item : data)
         {
+            char buffer[128];
+            tm bt;
+            time_t t = item.second.create();
+            localtime_r(&t, &bt);
+            strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M", &bt);
             fcout << "<tr>";
+            fcout << "<td>" << buffer << "</td>";
             fcout << "<td>" << item.first.name() << "</td>";
             fcout << "<td>" << item.second.amount() << "</td>";
             fcout << "<td>" << item.second.description() << "</td>";
@@ -121,16 +127,22 @@ namespace WebGUI
         fcout << "<h2>Plan</h2>";
         std::vector<std::pair<Category, PlanItem>> data;
         PlanItem::find_all_with_category(database, session.user(), data);
-        fcout << "<table><tr><th>Category</th><th>Amount</th><th>Description</th><th></th></tr>";
+        fcout << "<table><tr><th>Dátum</th><th>Category</th><th>Amount</th><th>Description</th><th></th></tr>";
         for (auto &item : data)
         {
+            char buffer[128];
+            tm bt;
+            time_t t = item.second.create();
+            localtime_r(&t, &bt);
+            strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M", &bt);
             fcout << "<tr>";
+            fcout << "<td>" << buffer << "</td>";
             fcout << "<td>" << item.first.name() << "</td>";
             fcout << "<td>" << item.second.amount() << "</td>";
             fcout << "<td>" << item.second.description() << "</td>";
             fcout <<   "<td>";
-            fcout <<     "<a href=\"?q=planitem_edit&itemid=" << item.second.id() << "\">Edit</a>";
-            fcout <<     "<a rel=\"nofollow\" href=\"?q=planitem_destroy_conform&itemid=" << item.second.id() << "\">Delete</a>";
+            fcout <<     "<a href=\"?q=planitem_edit&planitemid=" << item.second.id() << "\">Edit</a>";
+            fcout <<     "<a rel=\"nofollow\" href=\"?q=planitem_destroy_conform&planitemid=" << item.second.id() << "\">Delete</a>";
             fcout <<   "</td>";
             fcout << "</tr>";
         }
@@ -364,16 +376,84 @@ namespace WebGUI
     void balance_stats(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
-        (void)request; (void)session;
-        fcout << "<h2>Daily overview</h2>";
+        std::vector<Category> categories;
+        Category::find_all(database, session.user(), categories);
+
+        // Get arguments
+        std::string categoryidstr = request.get("categoryid");
+        std::string granulation = request.get("granulation");
+
+        // Parse arguments
+        uint64_t categoryid;
+        if (!parse_unsigned(categoryidstr, categoryid))
+            categoryid = categories[0].id();
+
+        Category::StatGranulation gran = Category::StatGranulation::weekly;
+        if (granulation == "week")
+            gran = Category::StatGranulation::weekly;
+        else if (granulation == "month")
+            gran = Category::StatGranulation::monthly;
+        else if (granulation == "year")
+            gran = Category::StatGranulation::yearly;
+
+        fcout << "<h2>Balance</h2>";
+
+        fcout << "<form name=\"balance_stats\"  method=\"get\" action=\"\" style=\"margin-bottom: 20px\">";
+        fcout << "<input type=\"hidden\" name=\"q\" value=\"diagram\">";
+        fcout << "<select name=\"categoryid\">";
+        for (auto &category : categories)
+        {
+            if (category.id() == categoryid)
+                fcout << "<option value=\"" << category.id() <<  "\" selected=\"selected\">"
+                    << category.name() << "</option>";
+            else
+                fcout << "<option value=\"" << category.id() <<  "\">"
+                    << category.name() << "</option>";
+        }
+        fcout << "</select>";
+        fcout << "<select name=\"granulation\">";
+        if (gran == Category::StatGranulation::weekly)
+            fcout << "<option value=\"week\" selected=\"selected\">weekly</option>";
+        else
+            fcout << "<option value=\"week\">weekly</option>";
+
+        if (gran == Category::StatGranulation::monthly)
+            fcout << "<option value=\"month\" selected=\"selected\">monthly</option>";
+        else
+            fcout << "<option value=\"month\">monthly</option>";
+
+        if (gran == Category::StatGranulation::yearly)
+            fcout << "<option value=\"year\" selected=\"selected\">yearly</option>";
+        else
+            fcout << "<option value=\"year\">yearly</option>";
+        fcout << "</select>";
+        fcout << "<input type=\"submit\" value=\"Query\">";
+        fcout << "</form>";
+        
         std::vector<Category::BalanceData> data;
-        Category c = Category::find(database, 46);
-        c.balance_stats(data, Category::StatGranulation::weekly, 2013);
+        auto category = std::find_if(categories.begin(), categories.end(),
+                [categoryid](Category const &c) { return c.id() == categoryid; });
+        if (category == categories.end())
+        {
+            fcout << "Category does not exists!";
+            return;
+        }
+        LOG_MESSAGE_DEBUG("Mókuska");
+        time_t t;
+        tm bt;
+        time(&t);
+        localtime_r(&t, &bt);
+        unsigned year = bt.tm_year + 1900;
+        LOG_MESSAGE_DEBUG("year: %u\n", year);
+        category->balance_stats(data, gran, year);
+        if (gran == Category::StatGranulation::yearly)
+        {
+            // calculate previous 5 years
+            for (int i = 1; i <= 5; ++i) category->balance_stats(data, gran, year - i);
+        }
         fcout << "<div class=\"chart-wrapper\"><div class=\"chart\" style=\"height:500px;width:" << data.size()*70<< "px\">";
         unsigned left = 0;
         int last_month = -1;
-        time_t t;
-        time(&t);
         auto max_expense = std::max_element(data.begin(), data.end(), 
                 [](Category::BalanceData const &a, Category::BalanceData const &b) {
                     return a.expensesum < b.expensesum;
@@ -385,60 +465,122 @@ namespace WebGUI
         unsigned max = std::max(max_expense->expensesum, max_plan->plannedsum);
         for (auto &b : data)
         {
-            int height = (double)b.expensesum/max*450;
+            int height = (double)b.expensesum/max*420;
             fcout << "<div class=\"expense\" style=\"z-index:1;left:" << left
-                << "px;bottom:50px;height:" << height << "px;width:30px;\">";
+                << "px;bottom:80px;height:" << height << "px;width:30px;\">";
             if (height > 50) fcout
                 << "<div style=\"height:30px;line-height:30px;transform-origin: 0% 0%; bottom: -25px; transform: rotate(-90deg);\">"
                 << b.expensesum << "</div>";
             fcout << "</div>";
-            height = (double)b.plannedsum/max*450;
+            height = (double)b.plannedsum/max*420;
             fcout << "<div class=\"plan\" style=\"left:" << left+25
-                << "px;bottom:60px;height:" << height << "px;width:30px;\">";
+                << "px;bottom:80px;height:" << height << "px;width:30px;\">";
             if (height > 50) fcout
                 << "<div style=\"height:30px;line-height:30px;transform-origin: 0% 0%; bottom: -25px; transform: rotate(-90deg);\">"
                 << b.plannedsum << "</div>";
             fcout << "</div>";
             left += 70;
-            // Calculate month
-            tm bt;
-            localtime_r(&t, &bt);
-            bt.tm_mon = 0;
-            bt.tm_mday = b.interval * 7;
-            mktime(&bt);
             char buffer[128];
-            if (bt.tm_mon > last_month)
+            localtime_r(&t, &bt);
+            switch (gran)
             {
+            case Category::StatGranulation::weekly:
+                // Calculate month
+                bt.tm_mon = 0;
+                bt.tm_mday = b.interval * 7;
+                mktime(&bt);
+                if (bt.tm_mon > last_month)
+                {
+                    strftime(buffer, sizeof(buffer), "%B", &bt);
+                    last_month = bt.tm_mon;
+                    fcout << "<div class=\"label\" style=\"left:" << left+20
+                    << "px;bottom:0px;height:50px;line-height:50px\">" << buffer << "</div>";
+                }
+            break;
+            case Category::StatGranulation::monthly:
+                bt.tm_mon = b.interval - 1;
+                mktime(&bt);
                 strftime(buffer, sizeof(buffer), "%B", &bt);
-                last_month = bt.tm_mon;
-                fcout << "<div class=\"label\" style=\"left:" << left+20
-                << "px;bottom:0px;height:50px;line-height:50px\">" << buffer << "</div>";
+                fcout << "<div class=\"label\" style=\"left:"
+                    << (int)left - 90
+                    << "px;bottom:-50px;height:50px;line-height:50px;transform-origin: 0% 0%; transform:rotate(-60deg);font-size: 18px\">"
+                    << buffer << "</div>";
+            break;
+            case Category::StatGranulation::yearly:
+                fcout << "<div class=\"label\" style=\"left:"
+                    << (int)left - 90
+                    << "px;bottom:-50px;height:50px;line-height:50px;transform-origin: 0% 0%; transform:rotate(-60deg)\">"
+                    << year << "</div>";
+                --year;
+            break;
             }
         }
         fcout << "</div></div>";
     }
 
     void daily_overview(Database &database, Session &session,
-            Request &request, std::ostream &fcout)
+            Request &request, OptsMap const &config, std::ostream &fcout)
     {
-        (void)request;
+        auto it = config.find("asset-dir");
+        std::string assetpath;
+        if (it != config.end()) assetpath = it->second;
+
+        std::string monthstr = request.get("relative_month");
+        uint64_t relative_month;
+        if (!parse_unsigned(monthstr, relative_month)) relative_month = 0;
         fcout << "<h2>Daily overview</h2>";
         std::vector<std::pair<Category, Category::BalanceData>> data;
         std::map<Category, std::vector<Category::BalanceData>> sorted;
-        Category::daily_overview(database, session.user(), data);
-        for (auto &d : data) sorted[d.first].push_back(d.second);
-        fcout << "<table><tr><th>Day</th>";
-        for (auto &d : sorted) fcout << "<th>" << d.first.name() << "</th>";
-        fcout << "</tr>";
-       
+        Category::daily_overview(database, session.user(), data, relative_month);
+
         // Get last day of month
         time_t t;
         time(&t);
         tm bt;
         localtime_r(&t, &bt);
-        bt.tm_mon++;
+        bt.tm_mon = bt.tm_mon+1 - relative_month;
         bt.tm_mday = 0;
         mktime(&bt);
+
+        // Display current month
+        char buffer[64];
+        strftime(buffer, sizeof(buffer), "%B, %Y", &bt);
+
+        fcout << "<div class=\"date\"><span class=\"arrow\">";
+        fcout << "<a href=\"?q=daily_overview&relative_month="
+            << relative_month + 1
+            << "\"><img alt=\"left\" width=\"32\" src=\""
+            << assetpath << "/arrow-left.png\"></img></a>";
+        fcout << "</span>";
+
+        fcout << "<span style=\"height: 32px\">" << buffer << "</span>";
+
+        if (relative_month > 0)
+        {
+            fcout << "<span class=\"arrow\">";
+            fcout << "<a href=\"?q=daily_overview&relative_month="
+                << relative_month - 1
+                << "\"><img alt=\"right\" width=\"32\" src=\""
+                << assetpath << "/arrow-right.png\"></img></a>";
+            fcout << "</span>";
+
+            fcout << "<span class=\"arrow\">";
+            fcout << "<a href=\"?q=daily_overview&relative_month=0"
+                << "\"><img alt=\"right\" width=\"32\" src=\""
+                << assetpath << "/arrow-right-double.png\"></img></a>";
+        }
+        fcout << "</span></div>";
+
+        if (data.empty())
+        {
+            fcout << "Sorry, this month is empty.";
+            return;
+        }
+
+        for (auto &d : data) sorted[d.first].push_back(d.second);
+        fcout << "<table><tr><th>Day</th>";
+        for (auto &d : sorted) fcout << "<th>" << d.first.name() << "</th>";
+        fcout << "</tr>";
         
         for (int i = bt.tm_mday; i > 0; --i)
         {
@@ -532,7 +674,7 @@ namespace WebGUI
         else if (request.query() == "diagram")
             balance_stats(database, session, request, fcout);
         else if (request.query() == "daily_overview")
-            daily_overview(database, session, request, fcout);
+            daily_overview(database, session, request, config, fcout);
         else error404(config, request, fcout); 
 
         if (request.type() == RequestType::Get)

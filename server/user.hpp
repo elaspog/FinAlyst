@@ -18,19 +18,19 @@ public:
     typedef unsigned char passtype[128];
 
     User() :
-        _database(NULL), _invalid(true),
+        _database(NULL), _invalid(true), _changed(false),
         _id(std::numeric_limits<uint64_t>::max())
     {}
 
     User(Database &database, uint64_t userid) :
         _database(&database),
-        _invalid(false), _detached(false), _loaded(false),
+        _invalid(false), _detached(false), _loaded(false), _changed(false),
         _id(userid)
     {}
 
     User(Database &database,
             std::string const &name, std::string const &password) :
-        _database(&database), _invalid(false), _detached(true),
+        _database(&database), _invalid(false), _detached(true), _changed(true),
         _name(name), _money(u8"\u8364")
     {
         reset_password(password);
@@ -75,6 +75,8 @@ public:
 
     void save()
     {
+        log_assert(!_invalid);
+        log_assert(_loaded);
         if (_detached)
         {
             MYSQL_STMT* stmt = _database->statement(
@@ -111,7 +113,35 @@ public:
             _id = _database->last_insert_id();
         } else
         {
-            // TODO: do update
+            if (!_changed) return;
+            time_t current;
+            time(&current);
+            MYSQL_TIME newmodify;
+            time_to_mysql(current, newmodify);
+            typedef std::tuple<MYSQL_TIME,
+                    FixedString<128>, FixedString<10>,
+                    FixedString<sizeof(_passdigest)>,
+                    FixedString<sizeof(_passsalt)>,
+                    uint64_t> Params;
+            Params params = std::make_tuple(
+                    newmodify,
+                    FixedString<128>(_name),
+                    FixedString<10>(_money),
+                    FixedString<sizeof(_passdigest)>(
+                        std::string((char*)_passdigest, sizeof(_passdigest))),
+                    FixedString<sizeof(_passsalt)>(
+                        std::string((char*)_passsalt,sizeof(_passsalt))),
+                    _id);
+            _database->execute(params,
+                "UPDATE `categories` SET `modify` = ?, "
+                " `name` = ?, `money` = ?, "
+                " `passdigest` = ?, `passsalt = ?`"
+                " WHERE id = ?");
+            uint64_t affected = _database->affected_rows();
+            log_assert(affected <= 1);
+            if (affected == 0)
+                throw RowDoesNotExists("Can't change user, user does "
+                        "not exists!");
         }
     }
 
@@ -169,7 +199,8 @@ private:
     User(Database &database, uint64_t id, time_t create, time_t modify,
             std::string const &name, std::string const &money, bool active,
             passtype const *passdigest, passtype const *passsalt) :
-        _database(&database), _invalid(false), _detached(false), _loaded(true),
+        _database(&database),
+        _invalid(false), _detached(false), _loaded(true), _changed(false),
         _id(id), _create(create), _modify(modify), _name(name), _money(money), _active(active)
     {
         memcpy(_passdigest, passdigest, sizeof(_passdigest));
@@ -270,6 +301,7 @@ private:
     bool _invalid;
     bool _detached;
     bool _loaded;
+    bool _changed;
 
     uint64_t _id;
     time_t _create;

@@ -155,7 +155,7 @@ void login_page(OptsMap const &config, Database &database,
     } else
     {
         // Has valid session redirect to main page
-        LOG_MESSAGE_INFO("User %s has vlaid session, redirecting to main page",
+        LOG_MESSAGE_INFO("User %s has valid session, redirecting to main page",
                 session.user().name().c_str());
         fcout << "Location: ?q=main\r\n";
         fcout << "\r\n";

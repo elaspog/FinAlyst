@@ -6,6 +6,8 @@
 class MemorySessionManager : public SessionManager
 {
 public:
+    MemorySessionManager(Database &database) : SessionManager(database)
+    {}
     std::string new_session(User &user);
     void delete_session(Session &session);
     bool load_session(std::string const &sessionid, Session &session);

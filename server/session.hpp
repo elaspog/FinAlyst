@@ -19,7 +19,12 @@ public:
 
     void set(User const &user, std::string const &sessionid)
     {
-        log_assert(!valid()); // TODO: report securoty problem
+        log_assert(!valid());
+        if (valid())
+        {
+            LOG_MESSAGE_WARN("Tried to overwrite valid session. This should never happen!");
+            return;
+        }
         if (user.valid())
         {
             _sessionid = sessionid;

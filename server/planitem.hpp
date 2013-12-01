@@ -162,12 +162,12 @@ public:
         {
             query(database, params, items,
                 "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
-                    " FROM `planitems` WHERE userid = ?");
+                    " FROM `planitems` WHERE userid = ?  ORDER BY `items`.`create` DESC");
         } else
         {
             query(database, params, items,
                 "SELECT `id`, `create`, `modify`, `userid`, `categoryid`, `amount`, `description` "
-                    " FROM `planitems` WHERE userid = ? LIMIT ? OFFSET ?");
+                    " FROM `planitems` WHERE userid = ? LIMIT ? OFFSET ? ORDER BY `items`.`create` DESC");
         }
     }
 
@@ -185,7 +185,8 @@ public:
                         "`categories`.`create`, `categories`.`modify`,"
                         "`categories`.`name`, `categories`.`description` "
                     "FROM `planitems` LEFT JOIN `categories` ON `categoryid` = `categories`.`id` "
-                    "WHERE `planitems`.`userid` = ?",
+                    "WHERE `planitems`.`userid` = ? "
+                    " ORDER BY `items`.`create` DESC ",
                 [&database, &data] (Results &res) {
                     data.push_back(std::make_pair(
                             Category(database,
