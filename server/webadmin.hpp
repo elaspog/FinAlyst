@@ -18,9 +18,6 @@ namespace WebAdmin
         fcout << "<div id=\"menu\">";
         fcout <<     "<a href=\"?q=main\">Main</a>";
         fcout <<     "<a href=\"?q=users\">Users</a>";
-        fcout <<     "<a href=\"?q=cpuinfo\">Cpu info</a>";
-        fcout <<     "<a href=\"?q=meminfo\">Mem info</a>";
-        fcout <<     "<a href=\"?q=hddstat\">HDD stat</a>";
         fcout <<     "<a href=\"?q=webserviceapi\">Webservice API</a>";
         fcout <<     "<a href=\"?q=changelog\">Changelog</a>";
         fcout <<     "<a href=\"?q=logout\">Logout</a> ";
@@ -29,7 +26,31 @@ namespace WebAdmin
 
     void main_page(Database &database, Request &request, std::ostream &fcout)
     {
-        // TODO
+        (void)database; (void)request;
+
+        struct statvfs stat;
+        statvfs("/", &stat);
+        fcout << "Total disk space: " << (stat.f_blocks * stat.f_frsize)/1024/1024 << "Mb<br>" << std::endl;
+        fcout << "Free disk space: " << (stat.f_bavail * stat.f_bsize)/1024/1024 << "Mb<br>" << std::endl;
+        fcout << "Total number of files: " << stat.f_files << "<br>" << std::endl;
+
+        std::ifstream f("/proc/meminfo");
+        std::string line;
+        for (int i = 0; i < 2; ++i)
+        {
+            std::getline(f, line);
+            fcout << line << "<br>" << std::endl;
+        }
+
+        std::ifstream cpuinfo("/proc/cpuinfo");
+        while (std::getline(cpuinfo, line))
+        {
+            if (line.substr(0, strlen("Processor")) == "Processor" || line.substr(0, strlen("model name")) == "model name")
+            {
+                fcout << line << "<br>" << std::endl;
+                break;
+            }
+        }
     }
 
     void users_page(Database &database,
@@ -46,11 +67,15 @@ namespace WebAdmin
         fcout << "<table><tr><th>Name</th><th>Create date</th><th></th></tr>" << std::endl;
         for (auto &user : users)
         {
+            char buffer[128];
+            tm bt;
+            time_t t = user.create();
+            localtime_r(&t, &bt);
+            strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M", &bt);
             fcout << "<tr><td>";
             fcout << user.name() << "</td>";
-            // TODO: create date
-            fcout << "<td>" << user.create() << "</td>";
-            fcout << "<td><a href=\"finance?useredit&id=" << user.id() << "\">"
+            fcout << "<td>" << buffer << "</td>";
+            fcout << "<td><a href=\"?q=edituser&userid=" << user.id() << "\">"
                 << "<img alt=\"edit\" width=\"32\" src=\"" << assetpath << "/edit.png\" ></a></td>";
             fcout << "</tr>"<< std::endl;
         }
@@ -77,11 +102,11 @@ namespace WebAdmin
                     fcout << "\r\n\r\n";
                 } else
                 {
-                    // TODO Error: different pass
+                    throw std::logic_error("Password different");
                 }
             } else
             {
-                // TODO Error: missing username os password
+                throw std::logic_error("Missing username of password");
             }
         } else
         {
@@ -94,80 +119,110 @@ namespace WebAdmin
         }
     }
 
-    void cpuinfo(std::ostream &fcout)
+    void edituser_page(Database &database, Request &request,
+            std::ostream &fcout, std::istream &fcin)
     {
-        std::ifstream f("/proc/cpuinfo");
-        std::string line;
-        while (std::getline(f, line)) fcout << line << "<br>" << std::endl;
-    }
+        if (request.type() == RequestType::Post)
+        {
+            std::map<std::string, std::string> data;
+            parse_pairs(fcin, '&', data);
+            auto pass = data.find("pass");
+            auto pass_again = data.find("again");
+            std::string userid_str = request.post("userid");
+            uint64_t userid;
+            if (userid_str.empty() || !parse_unsigned(userid_str, userid))
+                throw std::logic_error("Invalid or missing userid!");
 
-    void meminfo(std::ostream &fcout)
-    {
-        std::ifstream f("/proc/meminfo");
-        std::string line;
-        while (std::getline(f, line)) fcout << line << "<br>" << std::endl;
-    }
-
-    void hddstat(std::ostream &fcout)
-    {
-        struct statvfs stat;
-        statvfs("/", &stat);
-        
-        fcout << "Total disk space: " << (stat.f_blocks * stat.f_frsize)/1024/1024 << "Mb<br>" << std::endl;
-        fcout << "Free disk space: " << (stat.f_bavail * stat.f_bsize)/1024/1024 << "Mb<br>" << std::endl;
-        fcout << "Total number of files: " << stat.f_files << "<br>" << std::endl;
+            if (pass != data.end())
+            {
+                if (pass_again == data.end() || pass_again->second == pass->second)
+                {
+                    User user = User::find(database, userid);
+                    if (!user.valid())
+                    {
+                        LOG_MESSAGE_DEBUG("No such user");
+                        throw std::logic_error("No such user!");
+                    }
+                    //user.name(name->second);
+                    user.reset_password(pass->second);
+                    user.save();
+                    fcout << "Location: ?q=user\r\n";
+                    fcout << "\r\n\r\n";
+                } else
+                {
+                    LOG_MESSAGE_DEBUG("Password different");
+                    throw std::logic_error("Password different");
+                }
+            } else
+            {
+                LOG_MESSAGE_DEBUG("Missing password");
+                throw std::logic_error("Missing password");
+            }
+        } else
+        {
+            fcout << "<form name=\"edituser_form\" method=\"post\">";
+            fcout << "<input type=\"hidden\" name=\"userid\" value=\"" << request.get("userid") << "\">";
+            //fcout << "Username: <input name=\"name\">";
+            fcout << "Password: <input name=\"pass\">";
+            fcout << "Password again: <input name=\"pass_again\">";
+            fcout << "<input type=\"submit\" value=\"Edit\">";
+            fcout << "</form>";
+        }
     }
 
     void handle_request(OptsMap const &config, Database &database,
             Session &session, Request &request,
             std::ostream &fcout, std::istream &fcin)
     {
-        // TODO
         (void)session;
         std::string query = request.query();
-        switch (request.type())
+        try {
+            switch (request.type())
+            {
+            case RequestType::Get:
+                header(fcout, config, "Webservice API");
+                menu(fcout);
+                fcout << "<div class=\"content\">";
+
+                if (query == "main")
+                    main_page(database, request, fcout);
+                else if (query == "users")
+                    users_page(database, config, fcout);
+                else if (query == "newuser")
+                    newuser_page(database, request, fcout, fcin);
+                else if (query == "edituser")
+                    edituser_page(database, request, fcout, fcin);
+                else if (query == "webserviceapi")
+                    static_page("webserviceapi.html", config, fcout);
+                else if (query == "changelog")
+                    static_page("changelog.html", config, fcout);
+                else
+                {
+                    // TODO: handle 404 better
+                    fcout << "Error: 404";
+                }
+
+                fcout << "</div>";
+                footer(fcout);
+                break;
+            case RequestType::Post:
+                if (query == "newuser")
+                    newuser_page(database, request, fcout, fcin);
+                else
+                {
+                    // TODO: 404
+                }
+                break;
+            default:
+                // TODO
+                break;
+            }
+        } catch (std::exception const &error)
         {
-        case RequestType::Get:
-            header(fcout, config, "Webservice API");
-            menu(fcout);
-            fcout << "<div class=\"content\">";
-
-            if (query == "main")
-                main_page(database, request, fcout);
-            else if (query == "users")
-                users_page(database, config, fcout);
-            else if (query == "newuser")
-                newuser_page(database, request, fcout, fcin);
-            else if (query == "cpuinfo")
-                cpuinfo(fcout);
-            else if (query == "meminfo")
-                meminfo(fcout);
-            else if (query == "hddstat")
-                hddstat(fcout);
-            else if (query == "webserviceapi")
-                static_page("webserviceapi.html", config, fcout);
-            else if (query == "changelog")
-                static_page("changelog.html", config, fcout);
-            else
-            {
-                // TODO: handle 404 better
-                fcout << "Error: 404";
-            }
-
-            fcout << "</div>";
-            footer(fcout);
-            break;
-        case RequestType::Post:
-            if (query == "newuser")
-                newuser_page(database, request, fcout, fcin);
-            else
-            {
-                // TODO: 404
-            }
-            break;
-        default:
-            // TODO
-            break;
+            LOG_MESSAGE_WARN("Webadmin unknown error: %s", error.what());
+        } catch (...)
+        {
+            LOG_MESSAGE_WARN("Webadmin mysterious unknown error. This should never happen!");
         }
     }
 

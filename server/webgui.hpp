@@ -74,7 +74,7 @@ namespace WebGUI
         fcout << "<a href=\"?q=item_add\"><img alt=\"add item\" src=\""
             << assetpath << "/add.png\" width=\"32\">Add item</a>";
         std::vector<std::pair<Category, Item>> data;
-        Item::find_all_with_category(database, session.user(), data, 30, page);
+        Item::find_all_with_category(database, session.user(), data, 30, page*30);
         fcout << "<table><tr><th>Dátum</th><th>Category</th><th>Amount</th><th>Description</th><th></th></tr>";
         for (auto &item : data)
         {
@@ -89,8 +89,10 @@ namespace WebGUI
             fcout << "<td>" << item.second.amount() << "</td>";
             fcout << "<td>" << item.second.description() << "</td>";
             fcout <<   "<td>";
-            fcout <<     "<a href=\"?q=item_edit&itemid=" << item.second.id() << "\">Edit</a>";
-            fcout <<     "<a rel=\"nofollow\" href=\"?q=item_destroy_conform&itemid=" << item.second.id() << "\">Delete</a>";
+            fcout <<     "<a href=\"?q=item_edit&itemid=" << item.second.id() << "\">"
+                            << "<img alt=\"edit\" width=\"32\" src=\"" << assetpath << "/edit.png\" ></a>";
+            fcout <<     "<a rel=\"nofollow\" href=\"?q=item_destroy_conform&itemid=" << item.second.id() << "\">"
+                            << "<img alt=\"delete\" width=\"32\" src=\"" << assetpath << "/remove.png\" ></a>";
             fcout <<   "</td>";
             fcout << "</tr>";
         }
@@ -100,7 +102,6 @@ namespace WebGUI
     void category_page(Database &database, Session &session,
             Request &request, std::ostream &fcout)
     {
-        // TODO: handle limit
         (void)request;
         fcout << "<a href=\"?q=category_add\">Add category</a>";
         fcout << "<h2>Categories:</h2>";
@@ -150,14 +151,45 @@ namespace WebGUI
     }
 
     void plan_page(Database &database, Session &session,
-            Request &request, std::ostream &fcout)
+            Request &request, OptsMap const &config, std::ostream &fcout)
     {
-        // TODO: handle limit
-        (void)request;
-        fcout << "<a href=\"?q=planitem_add\">Add plan item</a>";
-        fcout << "<h2>Plan</h2>";
+        auto it = config.find("asset-dir");
+        std::string assetpath;
+        if (it != config.end()) assetpath = it->second;
+
+        std::string pagestr = request.get("page");
+        uint64_t page;
+        if (!parse_unsigned(pagestr, page)) page = 0;
+        
+        fcout << "<div class=\"date\"><span class=\"arrow\">";
+        fcout << "<a href=\"?q=plan&page="
+            << page + 1
+            << "\"><img alt=\"left\" width=\"32\" src=\""
+            << assetpath << "/arrow-left.png\"></img></a>";
+        fcout << "</span>";
+
+        fcout << "<span style=\"height: 32px\">Plan item</span>";
+
+        if (page > 0)
+        {
+            fcout << "<span class=\"arrow\">";
+            fcout << "<a href=\"?q=plan&page="
+                << page - 1
+                << "\"><img alt=\"right\" width=\"32\" src=\""
+                << assetpath << "/arrow-right.png\"></img></a>";
+            fcout << "</span>";
+
+            fcout << "<span class=\"arrow\">";
+            fcout << "<a href=\"?q=plan&page=0"
+                << "\"><img alt=\"right\" width=\"32\" src=\""
+                << assetpath << "/arrow-right-double.png\"></img></a>";
+        }
+        fcout << "</span></div>";
+
+        fcout << "<a href=\"?q=planitem_add\"><img alt=\"add plan item\" src=\""
+            << assetpath << "/add.png\" width=\"32\">Add plan item</a>";
         std::vector<std::pair<Category, PlanItem>> data;
-        PlanItem::find_all_with_category(database, session.user(), data);
+        PlanItem::find_all_with_category(database, session.user(), data, 30, page*30);
         fcout << "<table><tr><th>Dátum</th><th>Category</th><th>Amount</th><th>Description</th><th></th></tr>";
         for (auto &item : data)
         {
@@ -172,8 +204,10 @@ namespace WebGUI
             fcout << "<td>" << item.second.amount() << "</td>";
             fcout << "<td>" << item.second.description() << "</td>";
             fcout <<   "<td>";
-            fcout <<     "<a href=\"?q=planitem_edit&planitemid=" << item.second.id() << "\">Edit</a>";
-            fcout <<     "<a rel=\"nofollow\" href=\"?q=planitem_destroy_conform&planitemid=" << item.second.id() << "\">Delete</a>";
+            fcout <<     "<a href=\"?q=planitem_edit&planitemid=" << item.second.id() << "\">"
+                            << "<img alt=\"edit\" width=\"32\" src=\"" << assetpath << "/edit.png\" ></a>";
+            fcout <<     "<a rel=\"nofollow\" href=\"?q=planitem_destroy_conform&planitemid=" << item.second.id() << "\">"
+                            << "<img alt=\"delete\" width=\"32\" src=\"" << assetpath << "/remove.png\" ></a>";
             fcout <<   "</td>";
             fcout << "</tr>";
         }
@@ -239,13 +273,11 @@ namespace WebGUI
         uint64_t categoryid;
         if (!parse_unsigned(request.get("categoryid"), categoryid))
         {
-            // TODO
             throw std::logic_error("categoryid not a number");
         }
         Category category = Category::find(database, categoryid);
         if (!category.valid())
         {
-            // TODO
             throw std::logic_error("category does not exists");
         }
         fcout << "<br />";
@@ -275,13 +307,11 @@ namespace WebGUI
         uint64_t itemid;
         if (!parse_unsigned(request.get("itemid"), itemid))
         {
-            // TODO
             throw std::logic_error("itemid not a number");
         }
         Item item = Item::find(database, itemid);
         if (!item.valid())
         {
-            // TODO
             throw std::logic_error("item does not exists");
         }
         fcout << "<br />";
@@ -310,13 +340,11 @@ namespace WebGUI
         uint64_t planitemid;
         if (!parse_unsigned(request.get("planitemid"), planitemid))
         {
-            // TODO
             throw std::logic_error("planitemid not a number");
         }
         PlanItem planitem = PlanItem::find(database, planitemid);
         if (!planitem.valid())
         {
-            // TODO
             throw std::logic_error("planitem does not exists");
         }
         fcout << "<br />";
@@ -650,7 +678,6 @@ namespace WebGUI
             menu(fcout);
             fcout << "<div class=\"content\">";
         }
-        // TODO: handle 404 gracefully
         fcout << "Error: 404";
         if (request.type() != RequestType::Get)
         {
@@ -681,7 +708,7 @@ namespace WebGUI
         else if (request.query() == "item_destroy_conform")
             item_destroy_conform(request, fcout);
         else if (request.query() == "plan")
-            plan_page(database, session, request, fcout);
+            plan_page(database, session, request, config, fcout);
         else if (request.query() == "planitem_add")
             planitem_add(database, session, request, fcout);
         else if (request.query() == "planitem_edit")
