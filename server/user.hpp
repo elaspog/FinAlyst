@@ -30,8 +30,8 @@ public:
 
     User(Database &database,
             std::string const &name, std::string const &password) :
-        _database(&database), _invalid(false), _detached(true), _changed(true),
-        _name(name), _money(u8"\u8364")
+        _database(&database), _invalid(false), _detached(true), _loaded(true), _changed(true),
+        _name(name), _money("EURO")
     {
         reset_password(password);
         time(&_create);
@@ -95,7 +95,7 @@ public:
                 mbind(modify, size[1]),
                 mbind(_name, size[2]),
                 mbind(_money, size[3]),
-                mbind_fixed((char*)_passdigest, size[3], sizeof(_passdigest)),
+                mbind_fixed((char*)_passdigest, size[4], sizeof(_passdigest)),
                 mbind_fixed((char*)_passsalt, size[5], sizeof(_passsalt)),
             };
             static_assert(sizeof(size)/sizeof(size[0]) ==
