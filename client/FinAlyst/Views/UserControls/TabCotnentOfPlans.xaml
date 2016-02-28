@@ -1,0 +1,191 @@
+﻿<UserControl x:Class="FinAlyst.Views.UserControls.TabCotnentOfPlans"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:UserControls="clr-namespace:FinAlyst.Views.UserControls"
+             xmlns:customs="clr-namespace:FinAlyst.Views.CustomControls"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300"
+             DataContext="{Binding Source={StaticResource Locator}, Path=PlansViewModel}">
+    <Grid>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+
+                        <customs:AnimatedExpander x:Name="AddPlanContentControl" HeaderName="Add new plan">
+                            <customs:AnimatedExpander.Content>
+                                <UserControls:PlanAdder></UserControls:PlanAdder>
+                            </customs:AnimatedExpander.Content>
+                        </customs:AnimatedExpander>
+
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1">
+
+                        <customs:AnimatedExpander x:Name="EditPlanContentControl" HeaderName="Edit existing plan">
+                            <customs:AnimatedExpander.Content>
+                                <UserControls:PlanEditor x:Name="planEditor"></UserControls:PlanEditor>
+                            </customs:AnimatedExpander.Content>
+                        </customs:AnimatedExpander>
+                        
+                    </StackPanel>
+                    
+                </Grid>
+
+                <GroupBox BorderThickness="3"
+                        BorderBrush="{StaticResource lightBlueBrush}"
+                        Margin="0 2 0 0"
+                        Padding="2"
+                          MouseLeftButtonDown="GroupBox_MouseLeftButtonDown">
+                    <GroupBox.Header>
+                        <Border Background="{StaticResource lightBlueBrush}"
+                                Style="{StaticResource groupBoxHeader}">
+
+                            <TextBlock Text="Created Plans"
+                                        FontSize="12"
+                                        FontWeight="Bold"></TextBlock>
+                        </Border>
+                    </GroupBox.Header>
+
+
+                    <StackPanel>
+                        <!--<Grid.RowDefinitions>
+                            <RowDefinition Height="*"></RowDefinition>
+                            <RowDefinition Height="*"></RowDefinition>
+                        </Grid.RowDefinitions>-->
+
+
+                        <DockPanel x:Name="itemsControlOfPlans">
+
+                            <ItemsControl   DockPanel.Dock="Top"
+                                            VerticalAlignment="Stretch"
+                                            BorderThickness="0"
+                                            ItemsSource="{Binding PlanViewModels}"  
+                                            ButtonBase.Click="EditPlan_Click"  >
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="2">
+                                            <Border Margin="2 2 0 0"
+                                                CornerRadius="4"
+                                                Background="Gray"
+                                                Opacity=".5"></Border>
+                                            <Border x:Name="border"
+                                                                BorderBrush="#00FF00"
+                                                                BorderThickness="2"
+                                                                CornerRadius="4"
+                                                                Background="#DDFFDD"
+                                                                Margin="0 0 2 2"
+                                                                Padding="3">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition></RowDefinition>
+                                                        <RowDefinition></RowDefinition>
+                                                        <RowDefinition></RowDefinition>
+                                                        <RowDefinition></RowDefinition>
+                                                    </Grid.RowDefinitions>
+
+                                                    <StackPanel Orientation="Horizontal"   Grid.Row="0">
+                                                        <TextBlock  FontWeight="Bold"
+                                                                Text="{Binding Amount}"></TextBlock>
+                                                    </StackPanel>
+
+                                                    <StackPanel Orientation="Horizontal"   Grid.Row="1">
+                                                        <TextBlock FontStyle="Italic" Text="{Binding Description}" TextWrapping="Wrap"></TextBlock>
+                                                    </StackPanel>
+
+                                                    <StackPanel Orientation="Horizontal"   Grid.Row="2">
+                                                        <TextBlock FontSize="10" Text="  Created  : "></TextBlock>
+                                                        <TextBlock FontSize="10" FontStyle="Oblique" Text="{Binding CreationTime, StringFormat=\{0:yyyy-MM-dd HH:mm:ss\}}"></TextBlock>
+                                                    </StackPanel>
+
+                                                    <StackPanel Orientation="Horizontal"  Grid.Row="3">
+                                                        <TextBlock FontSize="10" Text="  Modified: "></TextBlock>
+                                                        <TextBlock FontStyle="Oblique" 
+                                                               FontSize="10" Text="{Binding ModificationTime, StringFormat=\{0:yyyy-MM-dd HH:mm:ss\}}"></TextBlock>
+                                                    </StackPanel>
+
+                                                </Grid>
+                                            </Border>
+                                            <!--A kettő lenti közül bármelyik jó-->
+                                            <!--<Button Style="{StaticResource openButton}"
+                                                Command="{Binding   RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}, 
+                                                                    Path=DataContext.OpenCategoryCommand}"></Button>-->
+                                            <Button Style="{StaticResource openButton}"
+                                                Command="{Binding PlansViewModel.OpenExistingPlanCommand, Source={StaticResource Locator}}"
+                                                CommandParameter="{Binding}"></Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel></WrapPanel>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+
+                        </DockPanel>
+
+
+                        <DockPanel x:Name="dataGridOfPlans">
+
+                            <DataGrid   CanUserAddRows="false"      ItemsSource="{Binding PlanViewModels}" 
+                            HorizontalAlignment="Stretch"       VerticalAlignment="Top"  
+                            HeadersVisibility="Column"          Background="LightGray" 
+                            RowBackground="#74B7ED"             AlternatingRowBackground="White"
+                            BorderBrush="Gray"                  AutoGenerateColumns="False" 
+                            IsReadOnly="True"                   DockPanel.Dock="Bottom">
+
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Id"                 Binding="{Binding Id}" />
+                                    <DataGridTextColumn Header="Description"        Binding="{Binding Description}" />
+                                    <DataGridTextColumn Header="Category Id"        Binding="{Binding CategoryId}"/>
+                                    <DataGridTextColumn Header="Amount"             Binding="{Binding Amount}" />
+                                    <DataGridTextColumn Header="Creation Time"      Binding="{Binding CreationTime, StringFormat=\{0:yyyy-MM-dd HH:mm:ss\}}"/>
+                                    <DataGridTextColumn Header="Modification Time"  Binding="{Binding ModificationTime, StringFormat=\{0:yyyy-MM-dd HH:mm:ss\}}" />
+                                </DataGrid.Columns>
+
+                            </DataGrid>
+
+                        </DockPanel>
+
+                    </StackPanel>
+                    
+                    
+
+                </GroupBox>
+
+
+                <!--<GroupBox BorderThickness="3"
+                        BorderBrush="{StaticResource lightBlueBrush}"
+                        Margin="0 2 0 0"
+                        Padding="2">
+                    <GroupBox.Header>
+                        <Border Background="{StaticResource lightBlueBrush}"
+                                Style="{StaticResource groupBoxHeader}">
+
+                            <TextBlock Text="Money Left"
+                                        FontSize="12"
+                                        FontWeight="Bold"></TextBlock>
+                        </Border>
+                    </GroupBox.Header>
+                    
+                </GroupBox>-->
+                
+                
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

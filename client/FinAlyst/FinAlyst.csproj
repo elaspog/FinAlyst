@@ -1,0 +1,323 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{14F05F98-8BC4-4E13-97E5-C28CADB0D543}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>FinAlyst</RootNamespace>
+    <AssemblyName>FinAlyst</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="GalaSoft.MvvmLight.Extras.WPF45, Version=4.2.30.23246, Culture=neutral, PublicKeyToken=0e27b6f8be9b2ef7, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\MvvmLightLibs.4.2.30.0\lib\net45\GalaSoft.MvvmLight.Extras.WPF45.dll</HintPath>
+    </Reference>
+    <Reference Include="GalaSoft.MvvmLight.WPF45, Version=4.2.30.23246, Culture=neutral, PublicKeyToken=eabbf6a5f5af5004, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\MvvmLightLibs.4.2.30.0\lib\net45\GalaSoft.MvvmLight.WPF45.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\CommonServiceLocator.1.0\lib\NET35\Microsoft.Practices.ServiceLocation.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Windows.Controls.DataVisualization.Toolkit, Version=3.5.40128.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\MvvmLightLibs.4.2.30.0\lib\net45\System.Windows.Interactivity.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="Infrastructure\Exceptions\IsNotConnectedException.cs" />
+    <Compile Include="Infrastructure\Helpers\ConfigurationDescriptor.cs" />
+    <Compile Include="Infrastructure\Helpers\GeneralAnswerData.cs" />
+    <Compile Include="Infrastructure\Helpers\GeneralParameterData.cs" />
+    <Compile Include="Infrastructure\Helpers\ManagedRequestBase.cs" />
+    <Compile Include="Infrastructure\Helpers\ManagedRequestGeneral.cs" />
+    <Compile Include="Infrastructure\IOService.cs" />
+    <Compile Include="Infrastructure\IServerConnection.cs" />
+    <Compile Include="Infrastructure\Logger.cs" />
+    <Compile Include="Infrastructure\MessageArgs\CloseConnectionSelectorWindowMessage.cs" />
+    <Compile Include="Infrastructure\MessageArgs\OpenAboutWindowMessage.cs" />
+    <Compile Include="Infrastructure\MessageArgs\OpenConnectionSelectorWindowMessage.cs" />
+    <Compile Include="Infrastructure\MessageArgs\SendModalWindowMessage.cs" />
+    <Compile Include="Infrastructure\MyRelayCommand.cs" />
+    <Compile Include="Infrastructure\Notifier.cs" />
+    <Compile Include="Infrastructure\SelectedSubViewToUpdateEnum.cs" />
+    <Compile Include="Infrastructure\ServerConnection.cs" />
+    <Compile Include="Infrastructure\RepositoryManager.cs" />
+    <Compile Include="Models\CategoriesResponse.cs" />
+    <Compile Include="Models\Category.cs" />
+    <Compile Include="Models\CategoryResponse.cs" />
+    <Compile Include="Models\Item.cs" />
+    <Compile Include="Models\ItemResponse.cs" />
+    <Compile Include="Models\ItemsResponse.cs" />
+    <Compile Include="Models\LoginResponse.cs" />
+    <Compile Include="Models\NoDataResponse.cs" />
+    <Compile Include="Models\Plan.cs" />
+    <Compile Include="Models\PlanResponse.cs" />
+    <Compile Include="Models\PlansResponse.cs" />
+    <Compile Include="Models\SummaryOfDailyCategoryExpensesRequest.cs" />
+    <Compile Include="Models\SummaryOfDailyCategoryExpensesResponse.cs" />
+    <Compile Include="Models\SummaryOfDailyCategoryExpensesResult.cs" />
+    <Compile Include="Models\SummaryOfPlansAndExpensesRequest.cs" />
+    <Compile Include="Models\SummaryOfPlansAndExpensesResponse.cs" />
+    <Compile Include="Models\SummaryOfPlansAndExpensesResult.cs" />
+    <Compile Include="ViewModels\CategoriesViewModel.cs" />
+    <Compile Include="ViewModels\ExpensesViewModel.cs" />
+    <Compile Include="Infrastructure\SimpleParameterCommandModel.cs" />
+    <Compile Include="ViewModels\ITabContent.cs" />
+    <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\LogsViewModel.cs" />
+    <Compile Include="ViewModels\PlansViewModel.cs" />
+    <Compile Include="ViewModels\SummariesViewModel.cs" />
+    <Compile Include="ViewModels\Validation\IPropertyValidation.cs" />
+    <Compile Include="ViewModels\Validation\ModelValidator.cs" />
+    <Compile Include="ViewModels\Validation\PropertyValidation.cs" />
+    <Compile Include="ViewModels\ViewModelEntities\CategoryViewModel.cs" />
+    <Compile Include="ViewModels\ViewModelEntities\ErrorExtendedViewModelBase.cs" />
+    <Compile Include="ViewModels\ViewModelEntities\ItemViewModel.cs" />
+    <Compile Include="ViewModels\ViewModelEntities\PlanViewModel.cs" />
+    <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\AboutWindow.xaml.cs">
+      <DependentUpon>AboutWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Converters\BooleanToVisibilityConverter.cs" />
+    <Compile Include="Views\Converters\ConfigToDynamicGridViewConverter.cs" />
+    <Compile Include="Views\Converters\HelperClasses.cs" />
+    <Compile Include="Views\CustomControls\AnimatedExpander.cs" />
+    <Compile Include="Views\Helpers\PasswordBoxAssistant.cs" />
+    <Compile Include="Views\UserControls\CategoryAdder.xaml.cs">
+      <DependentUpon>CategoryAdder.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserControls\CategoryEditor.xaml.cs">
+      <DependentUpon>CategoryEditor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ConnectionSelectorWindow.xaml.cs">
+      <DependentUpon>ConnectionSelectorWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserControls\Information.xaml.cs">
+      <DependentUpon>Information.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserControls\ItemAdder.xaml.cs">
+      <DependentUpon>ItemAdder.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserControls\ItemEditor.xaml.cs">
+      <DependentUpon>ItemEditor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserControls\MainArea.xaml.cs">
+      <DependentUpon>MainArea.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserControls\Menu.xaml.cs">
+      <DependentUpon>Menu.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserControls\PlanAdder.xaml.cs">
+      <DependentUpon>PlanAdder.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserControls\PlanEditor.xaml.cs">
+      <DependentUpon>PlanEditor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserControls\StatisticsOfDailyCategoryExpenses.xaml.cs">
+      <DependentUpon>StatisticsOfDailyCategoryExpenses.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserControls\StatisticsOfPlansExpenses.xaml.cs">
+      <DependentUpon>StatisticsOfPlansExpenses.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserControls\TabContentOfLogs.xaml.cs">
+      <DependentUpon>TabContentOfLogs.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserControls\TabCotnentOfCategories.xaml.cs">
+      <DependentUpon>TabCotnentOfCategories.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserControls\TabCotnentOfExpenses.xaml.cs">
+      <DependentUpon>TabCotnentOfExpenses.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserControls\TabCotnentOfPlans.xaml.cs">
+      <DependentUpon>TabCotnentOfPlans.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserControls\TabCotnentOfSummaries.xaml.cs">
+      <DependentUpon>TabCotnentOfSummaries.xaml</DependentUpon>
+    </Compile>
+    <Page Include="Resources\ColorsAndBrushes.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Resources\DefaultStyles.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Themes\Generic.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\AboutWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Views\MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Page Include="Views\UserControls\CategoryAdder.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserControls\CategoryEditor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ConnectionSelectorWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserControls\Information.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserControls\ItemAdder.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserControls\ItemEditor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserControls\MainArea.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserControls\Menu.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserControls\PlanAdder.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserControls\PlanEditor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserControls\StatisticsOfDailyCategoryExpenses.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserControls\StatisticsOfPlansExpenses.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserControls\TabContentOfLogs.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserControls\TabCotnentOfCategories.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserControls\TabCotnentOfExpenses.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserControls\TabCotnentOfPlans.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserControls\TabCotnentOfSummaries.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\Icons\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Pictures\cubeHorse.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

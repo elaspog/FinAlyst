@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Connections xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Connection>
+    <Connection>http://example.localhost/fcgi-bin/finance</Connection>
+    <Connection>http://www.example.somewebsite.com/fcgi-bin/finance</Connection>
+    <Connection>http://finalyst.mooo.com/fcgi-bin/finance</Connection>
+    <Connection>http://althea.no-ip.info/fcgi-bin/finance</Connection>
+  </Connection>
+</Connections>

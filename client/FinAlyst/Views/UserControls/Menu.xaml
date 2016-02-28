@@ -1,0 +1,42 @@
+﻿<UserControl x:Class="FinAlyst.Views.UserControls.Menu"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" >
+    
+    <!--<UserControl.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.Close"    
+                        Executed="ApplicationClose"></CommandBinding>
+    </UserControl.CommandBindings>-->
+    
+    <Grid>
+        <Menu>
+            <MenuItem Header="File">
+                <MenuItem Header="Connect to ..." Command="{Binding ConnectionSelectorWindowCommand}"></MenuItem>
+                <!--<MenuItem Header="Disconnect" ></MenuItem>-->
+                <!--<MenuItem Header="Export" ></MenuItem>-->
+                <Separator></Separator>
+                <MenuItem Header="Exit"
+                          Click="Shutdown_Click"></MenuItem>
+                <!--<MenuItem Command="ApplicationCommands.Close" />-->
+                <!--<MenuItem Header="Exit" Command="ApplicationCommands.Close"></MenuItem>-->
+            </MenuItem>
+            <!--<MenuItem Header="Settings">
+                <MenuItem Header="Connection settings" ></MenuItem>
+            </MenuItem>-->
+            <!--<MenuItem Header="Views">-->
+                <!--<MenuItem Header="Expenses" ></MenuItem>
+                <MenuItem Header="Categories" ></MenuItem>
+                <MenuItem Header="Plans" ></MenuItem>
+                <MenuItem Header="Summaries" ></MenuItem>-->
+                <!--<Separator></Separator>
+                <MenuItem Header="Show log"></MenuItem>-->
+            <!--</MenuItem>-->
+            <MenuItem Header="Help">
+                <MenuItem Header="About" Command="{Binding AboutWindowCommand}"></MenuItem>
+                <!--<MenuItem Header="Tutorial" ></MenuItem>-->
+            </MenuItem>
+        </Menu>
+    </Grid>
+</UserControl>

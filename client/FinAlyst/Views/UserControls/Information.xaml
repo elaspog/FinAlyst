@@ -1,0 +1,201 @@
+﻿<UserControl x:Class="FinAlyst.Views.UserControls.Information"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ff="clr-namespace:FinAlyst.Views.Helpers"
+             xmlns:converters="clr-namespace:FinAlyst.Views.Converters"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" >
+    
+    <UserControl.Resources>
+
+        <converters:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"></converters:BooleanToVisibilityConverter>
+        
+    </UserControl.Resources>
+    
+    <Grid Margin="5,5">
+
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        
+        <Border Background="{StaticResource lightBlueBrush}"
+                    CornerRadius="6" 
+                    Padding="6" >
+            
+            <DockPanel>
+
+                <StackPanel Orientation="Horizontal"
+                            DockPanel.Dock="Left">
+                    <TextBlock 
+                           Text="FinAlyst"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           VerticalAlignment="Center"            
+                           FontSize="22"
+                           FontFamily="Trebuchet" 
+                Width="100"/>
+                    <StackPanel Visibility="{Binding IsLoggedIn}"
+                            Orientation="Vertical"
+                            Margin="15,0,0,0">
+
+                        <TextBlock DockPanel.Dock="Left" Text="User: "
+                                       Visibility="{Binding LoginStatus, Converter={StaticResource booleanToVisibilityConverter}}"
+                               Foreground="White"></TextBlock>
+                        <TextBlock DockPanel.Dock="Left" 
+                               Text="Server: "
+                                       Visibility="{Binding LoginStatus, Converter={StaticResource booleanToVisibilityConverter}}"
+                               Foreground="White"></TextBlock>
+
+                    </StackPanel>
+
+                    <StackPanel 
+                            DockPanel.Dock="Left"
+                            Orientation="Vertical"
+                            Margin="10,0">
+                        <TextBlock
+                         Text="{Binding ServerConnection.UserName}"
+                         FontWeight="Bold"
+                                       Visibility="{Binding LoginStatus, Converter={StaticResource booleanToVisibilityConverter}}"
+                         Foreground="White"
+                         MinWidth="100" ></TextBlock>
+
+                        <TextBlock DockPanel.Dock="Left" 
+                         Text="{Binding ServerConnection.HostName}"
+                         FontWeight="Bold"
+                                       Visibility="{Binding LoginStatus, Converter={StaticResource booleanToVisibilityConverter}}"
+                         Foreground="White"
+                         MinWidth="100"></TextBlock>
+
+                    </StackPanel>
+
+
+                    <StackPanel  VerticalAlignment="Center"
+                            DockPanel.Dock="Left"
+                            Orientation="Horizontal"
+                            >
+
+
+                        <StackPanel 
+                            DockPanel.Dock="Left"
+                            Orientation="Vertical"
+                            Margin="10,0">
+                            <TextBlock DockPanel.Dock="Left" 
+                                 Text="Username"
+                                       FontSize="11"
+                                 FontWeight="Bold"
+                                 Foreground="White"
+                                       Visibility="{Binding NotLoginStatus, Converter={StaticResource booleanToVisibilityConverter}}"
+                                 MinWidth="100"></TextBlock>
+
+                            <TextBox MinWidth="100"
+                                       FontSize="11"
+                                       Visibility="{Binding NotLoginStatus, Converter={StaticResource booleanToVisibilityConverter}}"
+                                     Text="{Binding UserName}"></TextBox>
+
+                        </StackPanel>
+
+                        <StackPanel 
+                            DockPanel.Dock="Left"
+                            Orientation="Vertical"
+                            Margin="10,0">
+                            <TextBlock DockPanel.Dock="Left" 
+                                 Text="Password"
+                                       FontSize="11"
+                                       Visibility="{Binding NotLoginStatus, Converter={StaticResource booleanToVisibilityConverter}}"
+                                 FontWeight="Bold"
+                                 Foreground="White"
+                                 MinWidth="100"></TextBlock>
+
+
+                            <PasswordBox ff:PasswordBoxAssistant.BindPassword="true"  
+                                         ff:PasswordBoxAssistant.BoundPassword="{Binding Path=Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                       Visibility="{Binding NotLoginStatus, Converter={StaticResource booleanToVisibilityConverter}}"
+                                            FontSize="11" MinWidth="100" />
+                        </StackPanel>
+                    </StackPanel>
+
+                </StackPanel>
+
+                <Button x:Name="LogoutButton"
+                        DockPanel.Dock="Right"
+                        HorizontalAlignment="Right"
+                        Content="Logout"
+                                       Visibility="{Binding LoginStatus, Converter={StaticResource booleanToVisibilityConverter}}"
+                        Width="100"
+                        Command="{Binding LogoutCommand}"></Button>
+                <Button 
+                        DockPanel.Dock="Right"
+                        HorizontalAlignment="Right"
+                        Content="Login"
+                                       Visibility="{Binding NotLoginStatus, Converter={StaticResource booleanToVisibilityConverter}}"
+                        Width="100"
+                        Command="{Binding LoginCommand}"></Button>
+
+            </DockPanel>
+            
+        </Border>
+        
+        <!--
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+        
+        
+
+            <StackPanel Grid.Column="0"
+                        VerticalAlignment="Center">
+                <Button Name="LoginButton"
+                        Content="Login"
+                        Width="100"></Button>
+            </StackPanel>
+        
+            <StackPanel Orientation="Horizontal" 
+                         Grid.Column="1">
+        
+            <StackPanel 
+                        Orientation="Vertical"
+                        Margin="10,0">
+
+                <TextBlock DockPanel.Dock="Left" Text="User: "></TextBlock>
+                <TextBlock DockPanel.Dock="Left" 
+                     Text="UserName"
+                     FontWeight="Bold"
+                     MinWidth="100"></TextBlock>
+            
+            </StackPanel>
+            
+
+            <StackPanel 
+                        Orientation="Vertical"
+                        Margin="10,0">
+
+                <TextBlock DockPanel.Dock="Left" Text="Server: "></TextBlock>
+                <TextBlock DockPanel.Dock="Left" 
+                     Text="localhost"
+                     FontWeight="Bold"
+                     MinWidth="100"></TextBlock>
+
+            </StackPanel>
+
+
+            </StackPanel>
+
+            <StackPanel  Grid.Column="2"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Right">
+                <Button Name="LogoutButton"
+                    Content="Logout"
+                        Width="100"></Button>
+            </StackPanel>
+
+        </Grid>        -->
+        
+    </Grid>
+
+</UserControl>

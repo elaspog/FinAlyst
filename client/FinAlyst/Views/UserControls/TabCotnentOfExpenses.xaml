@@ -1,0 +1,97 @@
+﻿<UserControl x:Class="FinAlyst.Views.UserControls.TabCotnentOfExpenses"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:UserControls="clr-namespace:FinAlyst.Views.UserControls"
+             xmlns:customs="clr-namespace:FinAlyst.Views.CustomControls"
+             mc:Ignorable="d" 
+             DataContext="{Binding Source={StaticResource Locator}, Path=ExpensesViewModel}">
+    <Grid>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+
+
+                    <StackPanel Grid.Column="0">
+
+                        <customs:AnimatedExpander x:Name="AddItemContentControl" HeaderName="Add new item">
+                            <customs:AnimatedExpander.Content>
+                                <UserControls:ItemAdder></UserControls:ItemAdder>
+                            </customs:AnimatedExpander.Content>
+                        </customs:AnimatedExpander>
+
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1">
+
+                        <customs:AnimatedExpander x:Name="EditItemContentControl" HeaderName="Edit existing item">
+                            <customs:AnimatedExpander.Content>
+                                <UserControls:ItemEditor x:Name="itemEditor"></UserControls:ItemEditor>
+                            </customs:AnimatedExpander.Content>
+                        </customs:AnimatedExpander>
+
+                    </StackPanel>
+
+                </Grid>
+
+                <GroupBox BorderThickness="3"
+                            BorderBrush="{StaticResource lightBlueBrush}"
+                            Margin="0 2 0 0"
+                            Padding="2">
+                    <GroupBox.Header>
+                        <Border Background="{StaticResource lightBlueBrush}"
+                                Style="{StaticResource groupBoxHeader}">
+
+                            <TextBlock Text="Logged Expenses"
+                                        FontSize="12"
+                                        FontWeight="Bold"></TextBlock>
+                        </Border>
+                    </GroupBox.Header>
+
+                    <DockPanel>
+
+
+                        <DataGrid   CanUserAddRows="false"      ItemsSource="{Binding ItemViewModels}" 
+                            HorizontalAlignment="Stretch"       VerticalAlignment="Top"  
+                            HeadersVisibility="Column"          Background="LightGray" 
+                            RowBackground="#74B7ED"             AlternatingRowBackground="White"
+                            BorderBrush="Gray"                  AutoGenerateColumns="False" 
+                            IsReadOnly="True" 
+                            ButtonBase.Click="EditItem_Click">
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Id"                 Binding="{Binding Id}" />
+                                <DataGridTextColumn Header="Description"        Binding="{Binding Description}" />
+                                <DataGridTextColumn Header="Category Name"      Binding="{Binding CategoryId}"/>
+                                <DataGridTextColumn Header="Amount"             Binding="{Binding Amount}" />
+                                <DataGridTextColumn Header="Creation Time"      Binding="{Binding CreationTime, StringFormat=\{0:yyyy-MM-dd HH:mm:ss\}}"/>
+                                <DataGridTextColumn Header="Modification Time"  Binding="{Binding ModificationTime, StringFormat=\{0:yyyy-MM-dd HH:mm:ss\}}" />
+
+                                <DataGridTemplateColumn Header="Edit" >
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Command="{Binding ExpensesViewModel.OpenExistingItemCommand, Source={StaticResource Locator}}"
+                                                    CommandParameter="{Binding}">Edit</Button>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+
+                        </DataGrid>
+
+                    </DockPanel>
+                </GroupBox>
+                
+                
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
